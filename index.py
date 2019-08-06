@@ -1,9 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from flask_jwt_extended import (
-    JWTManager, jwt_required, create_access_token,
-    get_jwt_identity
-)
+from flask_jwt_extended import ( JWTManager )
 
 from controllers import auth
 

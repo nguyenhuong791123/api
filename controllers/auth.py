@@ -5,9 +5,17 @@ from flask_jwt_extended import (
 )
 app = Blueprint('auth', __name__)
 
-@app.route("/auth")
+@app.route("/auth", methods=['POST'])
 def auth():
+    params = request.json
+    print(params)
+    user_token = create_access_token(identity=params['username'])
+    res = { "sucess": "true", "err": "", "token": user_token }
+    return jsonify(res)
+
+@app.route("/user", methods=['GET'])
+def access_user():
     params = request.args
     print(params)
-    access_token = create_access_token(identity='huongnv')
-    return "Hello " + access_token + "from action.py"
+    is_user = get_jwt_identity()
+    return "Hello " + is_user + "from action.py"
