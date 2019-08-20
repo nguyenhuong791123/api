@@ -10,7 +10,7 @@ def auth():
     params = request.json
     print(params)
     user_token = create_access_token(identity=params['username'])
-    res = { "sucess": "true", "err": "", "token": user_token , "auth": { "cti": 0, "mail": 0, "chat": 0, "menu": 0 } }
+    res = { "sucess": "true", "err": "", "token": user_token , "auth": { "cti": 0, "mail": 0, "chat": 0, "menu": 0, "path": "company" } }
     return jsonify(res)
 
 @app.route("/user", methods=['GET'])
