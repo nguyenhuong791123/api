@@ -38,10 +38,6 @@ def is_type(obj, istype):
     val = str(type(obj)).replace("<class '", "").replace("'>", "")
     return (val == istype) # 'str', 'int', 'list', 'bool'
 
-def delete_dir(path):
-    if path is not None and os.path.isdir(path):
-        shutil.rmtree(path)
-
 def convert_file_to_b64_string(fullpath):
     with open(fullpath, "rb") as f:
         return base64.b64encode(f.read())

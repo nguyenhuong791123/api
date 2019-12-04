@@ -3,13 +3,11 @@ import os
 import shutil
 import datetime
 import base64
-# import zipfile
-# import pyminizip
 import paramiko
 # paramiko.util.log_to_file('/tmp/paramiko.log')
 
-from .common.utils import *
-from .common.files import *
+from .cm.utils import *
+from .cm.files import *
 
 def transport_sftp(auth, files):
     print('Transport File Start !!!' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -17,18 +15,23 @@ def transport_sftp(auth, files):
     transport.connect(username = auth['username'], password = auth['password'])
     sftp = paramiko.SFTPClient.from_transport(transport)
 
+    # dir = 'upload'
+    # if os.path.isdir(dir) == False:
+    #     os.mkdir(dir)
+    # outpath = get_dir(dir)
+    # if os.path.isdir(outpath) == False:
+    #     os.mkdir(outpath)
     dir = 'upload'
-    if os.path.isdir(dir) == False:
-        os.mkdir(dir)
+    make_dir_local(dir)
     outpath = get_dir(dir)
-    if os.path.isdir(outpath) == False:
-        os.mkdir(outpath)
+    make_dir_local(outpath)
 
     # remote = '/home/' + auth['username'] + '/' + dir
     remote = '/home/' + auth['username']
-    result = put_sftp_files(sftp, transport, outpath, remote, files, auth['flag'])
+    result = put_ftp_sftp_files(True, sftp, transport, outpath, remote, files, auth['flag'])
+    if result is not None:
+        delete_dir(outpath)
 
-    delete_dir(outpath)
     return result
 
 def download_sftp(auth, files):

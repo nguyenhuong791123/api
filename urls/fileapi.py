@@ -1,8 +1,41 @@
 from flask import Blueprint, request, jsonify, make_response
 from flask_jwt_extended import ( JWTManager, jwt_required, create_access_token, get_jwt_identity )
 from utils.sftp import *
+from utils.ftp import *
 
 app = Blueprint('fileapi', __name__)
+
+@app.route('/putftp', methods=[ 'POST' ])
+def putftp():
+    authorization = request.authorization
+    # print(authorization)
+
+    auth = {}
+    auth['host'] = 'sc-ftp-01'
+    auth['port'] = 21
+    auth['username'] = 'huongnv'
+    auth['password'] = 'Nguyen080!'
+    # auth['password'] = './keys/id_rsa_sftp'
+    auth['flag'] = 'file'
+
+    files = None
+    result = []
+    if request.method == 'POST':
+        files = request.files.getlist('file')
+        if request.json is not None and (files is None or len(files) <= 0):
+            files = request.json.get('files')
+            auth['flag'] = 'json'
+
+        # print(files)
+        if files is None or len(files) <= 0:
+            obj = {}
+            obj['name'] = None
+            obj['data'] = 'ファイルデータは必須です。'
+            result.append(obj)
+            return jsonify(result), 200
+
+    result = transport_ftp(auth, files)
+    return jsonify(result), 200
 
 # curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d @data.json  http://192.168.10.126:8083/putsftp
 @app.route('/putsftp', methods=[ 'POST' ])
@@ -78,10 +111,8 @@ def getsftp():
             obj['data'] = 'ファイルデータは必須です。'
             return jsonify(obj), 200
 
-    print(auth)
     result = {}
     obj = download_sftp(auth, files)
-    print(obj)
     if auth['flag'] == 'file':
         filename = obj['filename']
         local = obj['path'] + '/' + filename
