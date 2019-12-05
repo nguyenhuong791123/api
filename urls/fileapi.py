@@ -1,9 +1,12 @@
 from flask import Blueprint, request, jsonify, make_response
 from flask_jwt_extended import ( JWTManager, jwt_required, create_access_token, get_jwt_identity )
-from utils.sftp import transport_sftp, download_sftp
-from utils.ftp import transport_ftp, download_ftp
-from utils.server import default_auth_server
+
+from utils.server import *
 from utils.cm.files import delete_dir
+from utils.file.sftp import transport_sftp, download_sftp
+from utils.file.ftp import transport_ftp, download_ftp
+from utils.file.scp import transport_scp, download_scp
+from utils.file.s3 import transport_s3, download_s3
 
 app = Blueprint('fileapi', __name__)
 
@@ -14,7 +17,7 @@ def putfiles():
 
     auth = {}
     auth['flag'] = 'file'
-    auth['mode'] = 'sftp'
+    auth['mode'] = Mode().s3
     print(auth)
     auth = default_auth_server(auth)
     print(auth)
@@ -35,13 +38,16 @@ def putfiles():
             result.append(obj)
             return jsonify(result), 200
 
+    m = Mode()
     mode = auth['mode']
-    if mode == 'ftp':
-        result = transport_ftp(auth, files)
-    elif mode == 'sftp':
+    if mode == m.sftp:
         result = transport_sftp(auth, files)
-    elif mode == 'scp':
+    elif mode == m.ftp:
+        result = transport_ftp(auth, files)
+    elif mode == m.scp:
         result = transport_scp(auth, files)
+    elif mode == m.s3:
+        result = transport_s3(auth, files)
 
     return jsonify(result), 200
 
@@ -52,7 +58,7 @@ def getfiles():
 
     auth = {}
     auth['flag'] = 'file'
-    auth['mode'] = 'sftp'
+    auth['mode'] = Mode().sftp
     print(auth)
     auth = default_auth_server(auth)
     print(auth)
@@ -83,17 +89,20 @@ def getfiles():
             obj['data'] = 'ファイルデータは必須です。'
             return jsonify(obj), 200
 
-    result = {}
-    # obj = download_ftp(auth, files)
-    obj = None
+    m = Mode()
     mode = auth['mode']
-    if mode == 'ftp':
-        obj = download_ftp(auth, files)
-    elif mode == 'sftp':
+    obj = None
+    if mode == m.sftp:
         obj = download_sftp(auth, files)
-    elif mode == 'scp':
+    elif mode == m.ftp:
+        obj = download_ftp(auth, files)
+    elif mode == m.scp:
         obj = download_scp(auth, files)
-    if auth['flag'] == 'file':
+    elif mode == m.s3:
+        obj = download_s3(auth, files)
+
+    result = {}
+    if auth['flag'] == 'file' and obj is not None:
         filename = obj['filename']
         local = obj['path'] + '/' + filename
         response = make_response()
@@ -103,7 +112,7 @@ def getfiles():
 
         delete_dir(obj['path'])
         return response
-    elif auth['flag'] == 'json':
+    elif auth['flag'] == 'json' and obj is not None:
         delete_dir(obj['path'])
         return jsonify(obj), 200
     else:

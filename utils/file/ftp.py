@@ -1,40 +1,34 @@
 # -*- coding: utf-8 -*-
 import datetime
 from ftplib import FTP, FTP_TLS
-from .cm.files import *
-from .cm.dates import get_datetime
+
+from ..server import *
+from ..cm.files import *
+from ..cm.dates import get_datetime
 
 def transport_ftp(auth, files):
-    print('Put File Start !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
+    print('Put File Ftp Start !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
     sv = connect(auth)
     if sv is None:
         return None
 
-    # dir = 'upload'
-    # make_dir_local(dir)
-    # outpath = get_dir(dir)
-    # make_dir_local(outpath)
     outpath = make_dir_get_outpath('upload')
+    remote = auth['home'] + auth['username']
+    result = put_files(Mode().ftp, sv, None, outpath, remote, files, auth['flag'])
+    if result is not None:
+        delete_dir(outpath)
 
-    remote = '/home/ftpusers/' + auth['username']
-    result = put_sftp_ftp_scp_files(1, sv, None, outpath, remote, files, auth['flag'])
-
-    print('Put File Start !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
+    print('Put File Ftp End !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
     return result
 
 def download_ftp(auth, files):
-    print('Download File Start !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
+    print('Download File Ftp Start !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
     sv = connect(auth)
     if sv is None:
         return None
 
-    # dir = 'download'
-    # make_dir_local(dir)
-    # outpath = get_dir(dir)
-    # make_dir_local(outpath)
     outpath = make_dir_get_outpath('download')
-
-    list = get_sftp_ftp_scp_files(1, sv, None, outpath, files, auth['flag'])
+    list = get_files(Mode().ftp, sv, None, outpath, files, auth['flag'])
     zip = auth['zip']
     zippw = auth['zippw']
     result = {}
@@ -55,7 +49,7 @@ def download_ftp(auth, files):
     result['path'] = outpath
     result['msg'] =  '「' + endtime + '」ダウンロード完了。'
 
-    print('Download File End !!!' + endtime)
+    print('Download File Ftp End !!!' + endtime)
     return result
 
 def connect(auth):

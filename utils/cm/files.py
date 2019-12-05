@@ -4,6 +4,8 @@ import shutil
 import zipfile
 import pyminizip
 import stat
+
+from ..server import *
 from .utils import convert_file_to_b64_string, convert_b64_string_to_file, is_empty
 from .dates import *
 
@@ -58,11 +60,33 @@ def zip_files(ziphome, zipname, zippw, level):
 
     return zipname
 
-def put_sftp_ftp_scp_files(mode, sftp, transport, lpath, rpath, files, flag):
+def zip_result(list, outpath, zip, zippw):
+    result = {}
+    if zip is not None and (zip == True or zip.lower() == 'true'):
+        os.chdir(outpath)
+        result['filename'] = zip_files(None, None, zippw, None)
+        result['data'] = None
+        os.chdir('../../')
+    else:
+        if len(list) == 1:
+            result['filename'] = list[0]['filename']
+            result = list[0]
+        else:
+            result['filename'] = None
+            result['data'] = list
+
+    endtime = get_datetime('%Y-%m-%d %H:%M:%S', None)
+    result['path'] = outpath
+    result['msg'] =  '「' + endtime + '」ダウンロード完了。'
+
+    return result
+
+def put_files(mode, sftp, transport, lpath, rpath, files, flag):
     result = []
+    m = Mode()
     if sftp is None  or rpath is None:
         return result
-    if transport is None and mode == 0:
+    if transport is None and mode in [m.sftp, m.scp]:
         return result
     if lpath is None:
         lpath = '.'
@@ -88,28 +112,33 @@ def put_sftp_ftp_scp_files(mode, sftp, transport, lpath, rpath, files, flag):
 
         obj = {}
         mkdir = False
-        if mode == 0:
+        if mode == m.sftp:
             mkdir = mkdir_sftp_remote(sftp, rpath)
-        elif mode == 1:
+        elif mode == m.ftp:
             # mkdir = mkdir_ftp_remote(sftp, rpath)
             mkdir = True
-        elif mode == 2:
+        elif mode == m.scp:
+            # mkdir = mkdir_s3_remote(sftp, rpath)
+            mkdir = True
+        elif mode == m.s3:
             # mkdir = mkdir_scp_remote(sftp, rpath)
             mkdir = True
         if mkdir == True:
             try:
+                # print(os.getcwd())
                 if os.path.isfile(local):
-                    if mode != 1:
-                        if mode == 0:
-                            sftp.put(local, filename)
-                        elif mode == 2:
-                            sftp.put(local, remote_path=rpath, recursive=True, preserve_times=True)
-                    else:
-                        # print(os.getcwd())
+                    if mode == m.sftp:
+                        sftp.put(local, filename)
+                    elif mode == m.ftp:
                         cmd = 'STOR %s' % filename
                         f = open(local, 'rb')
                         sftp.storbinary(cmd, f, 8192)
                         f.close()
+                    elif mode == m.scp:
+                        sftp.put(local, remote_path=rpath, recursive=True, preserve_times=True)
+                    elif mode == m.s3:
+                        s3path = rpath + '/' + filename
+                        sftp.upload_file(local, s3path)
                 else:
                     raise IOError('Could not find localFile %s !!' % local)
             except IOError as err:
@@ -123,20 +152,21 @@ def put_sftp_ftp_scp_files(mode, sftp, transport, lpath, rpath, files, flag):
         result.append(obj)
 
     if sftp is not None:
-        if mode != 1:
+        if mode in [m.sftp, m.scp]:
             sftp.close()
-        else:
+        elif mode == m.ftp:
             sftp.quit()
-    if transport is not None and mode == 0:
+    if transport is not None and mode in [m.sftp, m.scp]:
         transport.close()
 
     return result
 
-def get_sftp_ftp_scp_files(mode, sftp, transport, outpath, files, flag):
+def get_files(mode, sftp, transport, outpath, files, flag):
     result = []
+    m = Mode()
     if sftp is None:
         return result
-    if transport is None and mode != 1:
+    if transport is None and mode in [m.sftp, m.scp]:
         return result
     if outpath is None:
         outpath = '.'
@@ -152,16 +182,17 @@ def get_sftp_ftp_scp_files(mode, sftp, transport, outpath, files, flag):
         obj['remote'] = remote
         try:
             local = outpath + '/' + filename
-            if mode != 1:
-                if mode == 0:
+            if mode == m.sftp:
                     sftp.get(remote, local)
-                elif mode == 2:
-                    sftp.get(remote_path=remote, local_path=outpath, recursive=True, preserve_times=True)
-            else:
-                # if is_empty(remotedir) == False:
-                #     sftp.cwd(remotedir)
+            elif mode == m.ftp:
+                if is_empty(remotedir) == False:
+                    sftp.cwd(remotedir)
                 with open(local, 'wb') as f:
                     sftp.retrbinary('RETR %s' % filename, f.write)
+            elif mode == m.scp:
+                sftp.get(remote_path=remote, local_path=outpath, recursive=True, preserve_times=True)
+            elif mode == m.s3:
+                sftp.download_file(remote, local)
 
             obj['filename'] = filename
         except IOError as err:
@@ -175,11 +206,11 @@ def get_sftp_ftp_scp_files(mode, sftp, transport, outpath, files, flag):
         result.append(obj)
 
     if sftp is not None:
-        if mode != 1:
+        if mode in [m.sftp, m.scp]:
             sftp.close()
-        else:
+        elif mode == m.ftp:
             sftp.quit()
-    if transport is not None and mode != 1:
+    if transport is not None and mode in [m.sftp, m.scp]:
         transport.close()
     
     return result
