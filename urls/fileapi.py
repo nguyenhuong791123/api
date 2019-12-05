@@ -1,9 +1,48 @@
 from flask import Blueprint, request, jsonify, make_response
 from flask_jwt_extended import ( JWTManager, jwt_required, create_access_token, get_jwt_identity )
-from utils.sftp import *
-from utils.ftp import *
+from utils.sftp import transport_sftp, download_sftp
+from utils.ftp import transport_ftp, download_ftp
+from utils.server import default_auth_server
 
 app = Blueprint('fileapi', __name__)
+
+@app.route('/putfiles', methods=[ 'POST' ])
+def putfiles():
+    authorization = request.authorization
+    # print(authorization)
+
+    auth = {}
+    auth['flag'] = 'file'
+    auth['mode'] = 'sftp'
+    print(auth)
+    auth = default_auth_server(auth)
+    print(auth)
+
+    files = None
+    result = []
+    if request.method == 'POST':
+        files = request.files.getlist('file')
+        if request.json is not None and (files is None or len(files) <= 0):
+            files = request.json.get('files')
+            auth['flag'] = 'json'
+
+        # print(files)
+        if files is None or len(files) <= 0:
+            obj = {}
+            obj['name'] = None
+            obj['data'] = 'ファイルデータは必須です。'
+            result.append(obj)
+            return jsonify(result), 200
+
+    mode = auth['mode']
+    if mode == 'ftp':
+        result = transport_ftp(auth, files)
+    elif mode == 'sftp':
+        result = transport_sftp(auth, files)
+    elif mode == 'scp':
+        result = transport_scp(auth, files)
+
+    return jsonify(result), 200
 
 @app.route('/putftp', methods=[ 'POST' ])
 def putftp():
@@ -13,6 +52,7 @@ def putftp():
     auth = {}
     auth['host'] = 'sc-ftp-01'
     auth['port'] = 21
+    auth['tls'] = True
     auth['username'] = 'huongnv'
     auth['password'] = 'Nguyen080!'
     # auth['password'] = './keys/id_rsa_sftp'
@@ -36,6 +76,64 @@ def putftp():
 
     result = transport_ftp(auth, files)
     return jsonify(result), 200
+
+@app.route('/getftp', methods=[ 'POST' ])
+def getftp():
+    authorization = request.authorization
+    # print(authorization)
+
+    auth = {}
+    auth['host'] = 'sc-ftp-01'
+    auth['port'] = 21
+    auth['tls'] = True
+    auth['username'] = 'huongnv'
+    auth['password'] = 'Nguyen080!'
+    # auth['password'] = './keys/id_rsa_sftp'
+    auth['flag'] = 'file'
+
+    files = None
+    if request.method == 'POST':
+        if request.json is not None and (files is None or len(files) <= 0):
+            auth['flag'] = request.json.get('flag')
+            auth['zip'] = request.json.get('zip')
+            auth['zippw'] = request.json.get('zippw')
+            files = request.json.get('files')
+        else:
+            if is_none(request.form.get('flag')) == False:
+                auth['flag'] = request.form.get('flag')
+            auth['zip'] = request.form.get('zip')
+            auth['zippw'] = request.form.get('zippw')
+            if is_none(request.form.get('filename')) == False and is_none(request.form.get('path')) == False:
+                files = [{ 'filename': request.form.get('filename'), 'path': request.form.get('path') }]
+            else:
+                obj = {}
+                obj['name'] = None
+                obj['data'] = '「ファイル名又はパス」を指定してください。'
+                return jsonify(obj), 200
+
+        if files is None or len(files) <= 0:
+            obj = {}
+            obj['name'] = None
+            obj['data'] = 'ファイルデータは必須です。'
+            return jsonify(obj), 200
+
+    result = {}
+    obj = download_ftp(auth, files)
+    if auth['flag'] == 'file':
+        filename = obj['filename']
+        local = obj['path'] + '/' + filename
+        response = make_response()
+        response.data = open(local, 'rb').read()
+        response.headers['Content-Disposition'] = 'attachment; filename=' + filename
+        response.mimetype = 'application/zip'
+
+        delete_dir(obj['path'])
+        return response
+    elif auth['flag'] == 'json':
+        delete_dir(obj['path'])
+        return jsonify(obj), 200
+    else:
+        return jsonify(result), 200
 
 # curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d @data.json  http://192.168.10.126:8083/putsftp
 @app.route('/putsftp', methods=[ 'POST' ])

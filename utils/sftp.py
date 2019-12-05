@@ -8,46 +8,39 @@ import paramiko
 
 from .cm.utils import *
 from .cm.files import *
+from .cm.dates import get_datetime
 
 def transport_sftp(auth, files):
-    print('Transport File Start !!!' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    print('Upload File Start !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     transport = paramiko.Transport((auth['host'], int(auth['port'])))
     transport.connect(username = auth['username'], password = auth['password'])
     sftp = paramiko.SFTPClient.from_transport(transport)
 
-    # dir = 'upload'
-    # if os.path.isdir(dir) == False:
-    #     os.mkdir(dir)
-    # outpath = get_dir(dir)
-    # if os.path.isdir(outpath) == False:
-    #     os.mkdir(outpath)
     dir = 'upload'
     make_dir_local(dir)
     outpath = get_dir(dir)
     make_dir_local(outpath)
 
-    # remote = '/home/' + auth['username'] + '/' + dir
     remote = '/home/' + auth['username']
-    result = put_ftp_sftp_files(True, sftp, transport, outpath, remote, files, auth['flag'])
+    result = put_sftp_ftp_scp_files(0, sftp, transport, outpath, remote, files, auth['flag'])
     if result is not None:
         delete_dir(outpath)
 
+    print('Upload File End !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     return result
 
 def download_sftp(auth, files):
-    print('Download File Start !!!' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    print('Download File Start !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     transport = paramiko.Transport((auth['host'], int(auth['port'])))
     transport.connect(username = auth['username'], password = auth['password'])
     sftp = paramiko.SFTPClient.from_transport(transport)
 
     dir = 'download'
-    if os.path.isdir(dir) == False:
-        os.mkdir(dir)
+    make_dir_local(dir)
     outpath = get_dir(dir)
-    if os.path.isdir(outpath) == False:
-        os.mkdir(outpath)
+    make_dir_local(outpath)
 
-    list = get_sftp_files(sftp, transport, outpath, files, auth['flag'])
+    list = get_sftp_ftp_scp_files(0, sftp, transport, outpath, files, auth['flag'])
     zip = auth['zip']
     zippw = auth['zippw']
     result = {}
@@ -64,6 +57,9 @@ def download_sftp(auth, files):
             result['filename'] = zipname
             result['data'] = list
 
+    endtime = get_datetime('%Y-%m-%d %H:%M:%S', None)
     result['path'] = outpath
-    result['msg'] =  '「' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '」ダウンロード完了。'
+    result['msg'] =  '「' + endtime + '」ダウンロード完了。'
+
+    print('Download File End !!!' + endtime + ']')
     return result
