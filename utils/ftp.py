@@ -10,10 +10,11 @@ def transport_ftp(auth, files):
     if sv is None:
         return None
 
-    dir = 'upload'
-    make_dir_local(dir)
-    outpath = get_dir(dir)
-    make_dir_local(outpath)
+    # dir = 'upload'
+    # make_dir_local(dir)
+    # outpath = get_dir(dir)
+    # make_dir_local(outpath)
+    outpath = make_dir_get_outpath('upload')
 
     remote = '/home/ftpusers/' + auth['username']
     result = put_sftp_ftp_scp_files(1, sv, None, outpath, remote, files, auth['flag'])
@@ -27,10 +28,11 @@ def download_ftp(auth, files):
     if sv is None:
         return None
 
-    dir = 'download'
-    make_dir_local(dir)
-    outpath = get_dir(dir)
-    make_dir_local(outpath)
+    # dir = 'download'
+    # make_dir_local(dir)
+    # outpath = get_dir(dir)
+    # make_dir_local(outpath)
+    outpath = make_dir_get_outpath('download')
 
     list = get_sftp_ftp_scp_files(1, sv, None, outpath, files, auth['flag'])
     zip = auth['zip']

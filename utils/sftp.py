@@ -16,10 +16,11 @@ def transport_sftp(auth, files):
     transport.connect(username = auth['username'], password = auth['password'])
     sftp = paramiko.SFTPClient.from_transport(transport)
 
-    dir = 'upload'
-    make_dir_local(dir)
-    outpath = get_dir(dir)
-    make_dir_local(outpath)
+    # dir = 'upload'
+    # make_dir_local(dir)
+    # outpath = get_dir(dir)
+    # make_dir_local(outpath)
+    outpath = make_dir_get_outpath('upload')
 
     remote = '/home/' + auth['username']
     result = put_sftp_ftp_scp_files(0, sftp, transport, outpath, remote, files, auth['flag'])
@@ -35,10 +36,11 @@ def download_sftp(auth, files):
     transport.connect(username = auth['username'], password = auth['password'])
     sftp = paramiko.SFTPClient.from_transport(transport)
 
-    dir = 'download'
-    make_dir_local(dir)
-    outpath = get_dir(dir)
-    make_dir_local(outpath)
+    # dir = 'download'
+    # make_dir_local(dir)
+    # outpath = get_dir(dir)
+    # make_dir_local(outpath)
+    outpath = make_dir_get_outpath('download')
 
     list = get_sftp_ftp_scp_files(0, sftp, transport, outpath, files, auth['flag'])
     zip = auth['zip']

@@ -226,3 +226,12 @@ def delete_dir(path):
     print(os.getcwd())
     if path is not None and os.path.isdir(path):
         shutil.rmtree(path)
+
+def make_dir_get_outpath(dir):
+    if is_empty(dir):
+        return './'
+
+    make_dir_local(dir)
+    outpath = get_dir(dir)
+    make_dir_local(outpath)
+    return outpath
