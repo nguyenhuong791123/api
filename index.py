@@ -25,7 +25,7 @@ def after_request(response):
     # print('After Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     return response
 
-lc = []
+# lc = []
 @app.before_request
 def before_request():
     auth = request.authorization
@@ -36,12 +36,16 @@ def before_request():
         key = request.cookies.get('apikey', None)
         # print('cookies:' + str(key))
 
-    global lc
-    lc.append(len(lc) + 1)
+    authkey = 'huongnv'
+    ag = UserAgent(request)
+    ag.setAuth(authkey)
+    print(ag.toJson())
+    # global lc
+    # lc.append(len(lc) + 1)
     # print(lc)
-    # print('Before Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
-    # if auth is None and key is None:
-    #     return jsonify({"error": "Auth or API key is required !!!"}), 401
+    print('Before Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
+    if ag.auth_api_key is None:
+        return jsonify({"error": "Auth or API key is required !!!"}), 401
 
 @app.route('/', methods=[ 'GET', 'POST' ])
 def index():

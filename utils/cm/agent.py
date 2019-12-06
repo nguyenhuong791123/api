@@ -82,9 +82,14 @@ class UserAgent():
         self.user_agent = req.user_agent
         self.cookies = req.cookies
         self.accept_languages = req.accept_languages
+        self.auth_api_key = None
+
+    def setAuth(self, authkey):
+        self.auth_api_key = authkey
 
     def toJson(self):
         obj = {}
+        obj['auth_api_key'] = self.auth_api_key
         obj['host'] = self.host
         obj['path'] = self.path
         obj['method'] = self.method
