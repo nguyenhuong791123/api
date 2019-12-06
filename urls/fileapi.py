@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 from flask import Blueprint, request, jsonify, make_response
-from flask_jwt_extended import ( JWTManager, jwt_required, create_access_token, get_jwt_identity )
+# from flask_jwt_extended import ( JWTManager, jwt_required, create_access_token, get_jwt_identity )
 
 from utils.server import *
 from utils.cm.files import delete_dir

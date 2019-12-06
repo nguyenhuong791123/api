@@ -1,6 +1,7 @@
 # -*- coding: UTF-8 -*-
 import re
 import locale
+import json
 
 LANGUAGE_CODES = [ "en", "ja", "vi" ]
 def to_locale(language, to_lower=False):
@@ -71,3 +72,24 @@ def parse_http_accept_language(accept):
             if lang_code in LANGUAGE_CODES:
                 return lang_code
     return None
+
+class UserAgent():
+    def __init__(self, req):
+        self.host = req.host
+        self.path = req.path
+        self.method = req.method
+        self.remote_addr = req.remote_addr
+        self.user_agent = req.user_agent
+        self.cookies = req.cookies
+        self.accept_languages = req.accept_languages
+
+    def toJson(self):
+        obj = {}
+        obj['host'] = self.host
+        obj['path'] = self.path
+        obj['method'] = self.method
+        obj['remote_addr'] = self.remote_addr
+        obj['user_agent'] = str(self.user_agent)
+        obj['cookies'] = self.cookies
+        obj['accept_languages'] = str(self.accept_languages)
+        return obj
