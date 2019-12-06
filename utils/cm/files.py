@@ -46,6 +46,7 @@ def zip_files(ziphome, zipname, zippw, level):
         zipname = get_dir(None) + '_zip.zip'
 
     # print(os.getcwd())
+    print(ziphome)
     if zippw is None or len(zippw) <= 0:
         with zipfile.ZipFile(zipname,'w', compression=zipfile.ZIP_STORED) as n_zip:
             for file in os.listdir(ziphome):
