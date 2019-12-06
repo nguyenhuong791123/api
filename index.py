@@ -7,18 +7,20 @@ from flask_cors import CORS
 
 from utils.cm.agent import parse_http_accept_language, UserAgent
 from utils.cm.dates import get_datetime
-from readme.readme import *
+from readme.readme import readme_read
 
-from auth import auth
+# from auth import auth
 from urls import fileapi
+from urls import mailapi
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 # app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
 # jwt = JWTManager(app)
 
-app.register_blueprint(auth.app)
+# app.register_blueprint(auth.app)
 app.register_blueprint(fileapi.app)
+app.register_blueprint(mailapi.app)
 
 @app.after_request
 def after_request(response):
@@ -26,12 +28,14 @@ def after_request(response):
     return response
 
 # lc = []
+# curl -XGET -d "apikey={API-KEY}" http://192.168.56.53:7085/
+# curl -H "Authorization: token OAUTH-TOKEN" http://192.168.56.53:7085/
 @app.before_request
 def before_request():
     ag = UserAgent(request)
-    print(ag.toJson())
+    print(ag.to_json())
     print(request.headers.__dict__)
-    print(request.headers.get('HTTP_AUTHORIZATION', ''))
+    print(request.headers.get('authorization', None))
     # global lc
     # lc.append(len(lc) + 1)
     # print(lc)
@@ -42,7 +46,7 @@ def before_request():
 @app.route('/', methods=[ 'GET' ])
 def index():
     ag = UserAgent(request)
-    return jsonify(ag.toJson()), 200
+    return jsonify(ag.to_json()), 200
 
 @app.route('/api', methods=[ 'GET' ])
 def api():

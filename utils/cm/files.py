@@ -193,6 +193,8 @@ def get_files(mode, sftp, transport, outpath, files, flag):
                 sftp.download_file(remote, local)
 
             obj['filename'] = filename
+        except Exception as ex:
+            obj['msg'] = str(ex)
         except IOError as err:
             obj['msg'] = str(err)
         finally:

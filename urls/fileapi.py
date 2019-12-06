@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify, make_response
 # from flask_jwt_extended import ( JWTManager, jwt_required, create_access_token, get_jwt_identity )
 
-from utils.server import *
+from utils.server import default_server
 from utils.cm.files import delete_dir
 from utils.file.sftp import transport_sftp, download_sftp
 from utils.file.ftp import transport_ftp, download_ftp
@@ -13,14 +13,11 @@ app = Blueprint('fileapi', __name__)
 
 @app.route('/putfiles', methods=[ 'POST' ])
 def putfiles():
-    authorization = request.authorization
-    # print(authorization)
-
     auth = {}
     auth['flag'] = 'file'
     auth['mode'] = Mode().s3
     print(auth)
-    auth = default_auth_server(auth)
+    auth = default_server(auth)
     print(auth)
 
     files = None
@@ -54,14 +51,11 @@ def putfiles():
 
 @app.route('/getfiles', methods=[ 'POST' ])
 def getfiles():
-    authorization = request.authorization
-    # print(authorization)
-
     auth = {}
     auth['flag'] = 'file'
     auth['mode'] = Mode().sftp
     print(auth)
-    auth = default_auth_server(auth)
+    auth = default_server(auth)
     print(auth)
 
     files = None
