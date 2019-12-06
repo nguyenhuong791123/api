@@ -134,55 +134,17 @@ def put_files(mode, sftp, transport, lpath, rpath, files, flag):
                 elif mode == m.s3:
                     s3path = rpath + '/' + filename
                     sftp.upload_file(local, s3path)
+
+                obj['msg'] =  '「' + get_datetime('%Y-%m-%d %H:%M:%S', None) + '」転送完了。'
             else:
                 raise IOError('Could not find localFile %s !!' % local)
         except Exception as ex:
-            print('*** Caught exception: %s: %s' % (ex.__class__, ex))
+            # print('*** Caught exception: %s: %s' % (ex.__class__, ex))
             obj['msg'] = str(ex)
         except IOError as err:
             obj['msg'] = str(err)
         finally:
             obj['remote'] = rpath + '/' + filename
-            obj['msg'] =  '「' + get_datetime('%Y-%m-%d %H:%M:%S', None) + '」転送完了。'
-        # if mode == m.sftp:
-        #     mkdir = mkdir_sftp(sftp, rpath)
-        # elif mode == m.ftp:
-        #     # mkdir = mkdir_ftp(sftp, rpath)
-        #     mkdir = True
-        # elif mode == m.scp:
-        #     # mkdir = mkdir_s3_remote(sftp, rpath)
-        #     mkdir = True
-        # elif mode == m.s3:
-        #     # mkdir = mkdir_scp_remote(sftp, rpath)
-        #     mkdir = True
-        # if mkdir == True:
-        #     try:
-        #         # print(os.getcwd())
-        #         if os.path.isfile(local):
-        #             if mode == m.sftp:
-        #                 sftp.put(local, filename)
-        #             elif mode == m.ftp:
-        #                 cmd = 'STOR %s' % filename
-        #                 f = open(local, 'rb')
-        #                 sftp.storbinary(cmd, f, 8192)
-        #                 f.close()
-        #             elif mode == m.scp:
-        #                 sftp.put(local, remote_path=rpath, recursive=True, preserve_times=True)
-        #             elif mode == m.s3:
-        #                 s3path = rpath + '/' + filename
-        #                 sftp.upload_file(local, s3path)
-        #         else:
-        #             raise IOError('Could not find localFile %s !!' % local)
-        #     except Exception, e:
-        #         print('*** Caught exception: %s: %s' % (e.__class__, e))
-        #         obj['msg'] = str(e)
-        #     except IOError as err:
-        #         obj['msg'] = str(err)
-        #     finally:
-        #         obj['remote'] = rpath + '/' + filename
-        #         obj['msg'] =  '「' + get_datetime('%Y-%m-%d %H:%M:%S', None) + '」転送完了。'
-        # else:
-        #     obj['msg'] = 'Can not create dir to remote !!!'
         
         result.append(obj)
 
@@ -194,6 +156,7 @@ def put_files(mode, sftp, transport, lpath, rpath, files, flag):
     if transport is not None and mode in [m.sftp, m.scp]:
         transport.close()
 
+    print(result)
     return result
 
 def get_files(mode, sftp, transport, outpath, files, flag):

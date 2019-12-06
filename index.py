@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 import os
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import ( JWTManager )
 
@@ -19,12 +19,24 @@ jwt = JWTManager(app)
 app.register_blueprint(auth.app)
 app.register_blueprint(fileapi.app)
 
+# @app.after_request
+# def after_request(response):
+#     print('After Request !!!')
+#     return response
+
 # @app.before_request
 # def before_request():
-#     current_user = get_jwt_identity()
-#     print(current_user)
-#     if current_user is None:
-#         return jsonify({"error": "JWT authentication is required !!!"}), 401
+#     auth = request.authorization
+#     print(auth)
+#     key = request.form.get('apikey', None)
+#     print(key)
+#     if key is None:
+#         key = request.cookies.get('apikey', None)
+#         print('cookies:' + str(key))
+
+#     print('Before Request !!!')
+#     if auth is None and key is None:
+#         return jsonify({"error": "Auth or API key is required !!!"}), 401
 
 @app.route('/', methods=[ 'GET', 'POST' ])
 def index():
