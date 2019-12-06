@@ -30,6 +30,8 @@ def after_request(response):
 def before_request():
     ag = UserAgent(request)
     print(ag.toJson())
+    print(request.headers.__dict__)
+    print(request.headers.get('HTTP_AUTHORIZATION', ''))
     # global lc
     # lc.append(len(lc) + 1)
     # print(lc)
