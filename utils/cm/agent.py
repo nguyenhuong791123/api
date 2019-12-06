@@ -82,10 +82,13 @@ class UserAgent():
         self.user_agent = req.user_agent
         self.cookies = req.cookies
         self.accept_languages = req.accept_languages
-        self.auth_api_key = None
+        self.auth_api_key = self.setAuth(req.form.get('apikey', None), req.authorization)
 
-    def setAuth(self, authkey):
-        self.auth_api_key = authkey
+    def setAuth(self, key, auth):
+        if key is not None:
+            return key
+        if key is None and auth is not None:
+            return req.authorization.username
 
     def toJson(self):
         obj = {}

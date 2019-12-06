@@ -2,7 +2,7 @@
 import os
 import xlrd
 
-def read(sheet):
+def readme_read(sheet):
     result = []
     path = 'readme/readme.xlsx'
     if sheet is None or os.path.isfile(path) == False:
