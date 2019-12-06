@@ -1,10 +1,11 @@
 # -*- coding: UTF-8 -*-
 import os
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect
 from flask_cors import CORS
 from flask_jwt_extended import ( JWTManager )
 
 from utils.cm.language import parse_http_accept_language
+from readme.readme import *
 
 from auth import auth
 from urls import fileapi
@@ -29,21 +30,23 @@ app.register_blueprint(fileapi.app)
 def index():
     auth = request.authorization
     # print(auth)
+    return 'SC System !!!'
 
-    fn = 'README.md'
+@app.route('/api', methods=[ 'GET', 'POST' ])
+def api():
+    auth = request.authorization
+    # print(auth)
+    return redirect("/api/rd")
+
+@app.route('/api/<name>', methods=[ 'GET', 'POST' ])
+def apimodule(name):
+    auth = request.authorization
+    # print(auth)
+
     l = parse_http_accept_language(request.headers.get('Accept-Language', ''))
     if l is None:
         l = 'ja'
-    if l != 'en':
-        fn = 'README_' + l + '.md'
-
-    if os.path.isfile(fn) == False:
-        fn = 'README.md'
-
-    f = open(fn, 'r')
-    rds = f.readlines()
-    f.close()
-
+    rds = read(name + '_' + l)
     return render_template('index.html', rds=rds)
 
 if __name__ == "__main__":
