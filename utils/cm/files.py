@@ -113,42 +113,76 @@ def put_files(mode, sftp, transport, lpath, rpath, files, flag):
 
         obj = {}
         mkdir = False
-        if mode == m.sftp:
-            mkdir = mkdir_sftp_remote(sftp, rpath)
-        elif mode == m.ftp:
-            # mkdir = mkdir_ftp_remote(sftp, rpath)
-            mkdir = True
-        elif mode == m.scp:
-            # mkdir = mkdir_s3_remote(sftp, rpath)
-            mkdir = True
-        elif mode == m.s3:
-            # mkdir = mkdir_scp_remote(sftp, rpath)
-            mkdir = True
-        if mkdir == True:
-            try:
-                # print(os.getcwd())
-                if os.path.isfile(local):
-                    if mode == m.sftp:
+        try:
+            # print(os.getcwd())
+            if os.path.isfile(local):
+                if mode == m.sftp:
+                    mkdir = mkdir_sftp(sftp, rpath)
+                    if mkdir:
                         sftp.put(local, filename)
-                    elif mode == m.ftp:
+                elif mode == m.ftp:
+                    mkdir = mkdir_ftp(sftp, rpath)
+                    if mkdir:
                         cmd = 'STOR %s' % filename
                         f = open(local, 'rb')
                         sftp.storbinary(cmd, f, 8192)
                         f.close()
-                    elif mode == m.scp:
+                elif mode == m.scp:
+                    mkdir = mkdir_ssh(transport, rpath)
+                    if mkdir:
                         sftp.put(local, remote_path=rpath, recursive=True, preserve_times=True)
-                    elif mode == m.s3:
-                        s3path = rpath + '/' + filename
-                        sftp.upload_file(local, s3path)
-                else:
-                    raise IOError('Could not find localFile %s !!' % local)
-            except IOError as err:
-                obj['msg'] = str(err)
-            finally:
-                obj['remote'] = rpath + '/' + filename
-                obj['msg'] =  '「' + get_datetime('%Y-%m-%d %H:%M:%S', None) + '」転送完了。'
-        else:
-            obj['msg'] = 'Can not create dir to remote !!!'
+                elif mode == m.s3:
+                    s3path = rpath + '/' + filename
+                    sftp.upload_file(local, s3path)
+            else:
+                raise IOError('Could not find localFile %s !!' % local)
+        except Exception as ex:
+            print('*** Caught exception: %s: %s' % (ex.__class__, ex))
+            obj['msg'] = str(ex)
+        except IOError as err:
+            obj['msg'] = str(err)
+        finally:
+            obj['remote'] = rpath + '/' + filename
+            obj['msg'] =  '「' + get_datetime('%Y-%m-%d %H:%M:%S', None) + '」転送完了。'
+        # if mode == m.sftp:
+        #     mkdir = mkdir_sftp(sftp, rpath)
+        # elif mode == m.ftp:
+        #     # mkdir = mkdir_ftp(sftp, rpath)
+        #     mkdir = True
+        # elif mode == m.scp:
+        #     # mkdir = mkdir_s3_remote(sftp, rpath)
+        #     mkdir = True
+        # elif mode == m.s3:
+        #     # mkdir = mkdir_scp_remote(sftp, rpath)
+        #     mkdir = True
+        # if mkdir == True:
+        #     try:
+        #         # print(os.getcwd())
+        #         if os.path.isfile(local):
+        #             if mode == m.sftp:
+        #                 sftp.put(local, filename)
+        #             elif mode == m.ftp:
+        #                 cmd = 'STOR %s' % filename
+        #                 f = open(local, 'rb')
+        #                 sftp.storbinary(cmd, f, 8192)
+        #                 f.close()
+        #             elif mode == m.scp:
+        #                 sftp.put(local, remote_path=rpath, recursive=True, preserve_times=True)
+        #             elif mode == m.s3:
+        #                 s3path = rpath + '/' + filename
+        #                 sftp.upload_file(local, s3path)
+        #         else:
+        #             raise IOError('Could not find localFile %s !!' % local)
+        #     except Exception, e:
+        #         print('*** Caught exception: %s: %s' % (e.__class__, e))
+        #         obj['msg'] = str(e)
+        #     except IOError as err:
+        #         obj['msg'] = str(err)
+        #     finally:
+        #         obj['remote'] = rpath + '/' + filename
+        #         obj['msg'] =  '「' + get_datetime('%Y-%m-%d %H:%M:%S', None) + '」転送完了。'
+        # else:
+        #     obj['msg'] = 'Can not create dir to remote !!!'
         
         result.append(obj)
 
@@ -216,7 +250,7 @@ def get_files(mode, sftp, transport, outpath, files, flag):
     
     return result
 
-def mkdir_ftp_remote(ftp, dir):
+def mkdir_ftp(ftp, dir):
     if is_empty(dir):
         return False
     if dir == '/':
@@ -225,15 +259,16 @@ def mkdir_ftp_remote(ftp, dir):
 
     try:
         ftp.cwd(dir)
+        return True
     except IOError:
         print(dir)
         dirname, basename = os.path.split(dir.rstrip('/'))
-        mkdir_ftp_remote(ftp, dirname)
+        mkdir_ftp(ftp, dirname)
         ftp.mkd(basename)
         ftp.cwd(basename)
     return True
 
-def mkdir_sftp_remote(sftp, dir):
+def mkdir_sftp(sftp, dir):
     if is_empty(dir):
         return False
     if dir == '/':
@@ -242,11 +277,30 @@ def mkdir_sftp_remote(sftp, dir):
 
     try:
         sftp.chdir(dir)
+        return True
     except IOError:
         dirname, basename = os.path.split(dir.rstrip('/'))
-        mkdir_sftp_remote(sftp, dirname)
+        mkdir_sftp(sftp, dirname)
         sftp.mkdir(basename)
         sftp.chdir(basename)
+        return True
+
+def mkdir_ssh(ssh, dir):
+    if is_empty(dir):
+        return False
+    if dir == '/':
+        stdin, stdout, stderr = ssh.exec_command('cd /')
+        return True
+
+    try:
+        stdin, stdout, stderr = ssh.exec_command('cd ' + dir)
+        return True
+    except IOError:
+        print(dir)
+        dirname, basename = os.path.split(dir.rstrip('/'))
+        mkdir_ssh(ssh, dirname)
+        stdin, stdout, stderr = ssh.exec_command('mkdir  ' + basename)
+        stdin, stdout, stderr = ssh.exec_command('cd ' + dir)
         return True
 
 def make_dir_local(dir):

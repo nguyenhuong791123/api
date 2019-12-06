@@ -24,8 +24,8 @@ def transport_sftp(auth, files):
     result = put_files(Mode().sftp, sftp, ts, outpath, remote, files, auth['flag'])
     if result is not None:
         delete_dir(outpath)
+        print('Upload File Sftp End !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
 
-    print('Upload File Sftp End !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     return result
 
 def download_sftp(auth, files):

@@ -17,8 +17,8 @@ def transport_ftp(auth, files):
     result = put_files(Mode().ftp, ftp, None, outpath, remote, files, auth['flag'])
     if result is not None:
         delete_dir(outpath)
+        print('Put File Ftp End !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
 
-    print('Put File Ftp End !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
     return result
 
 def download_ftp(auth, files):

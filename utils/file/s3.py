@@ -17,8 +17,8 @@ def transport_s3(auth, files):
     result = put_files(Mode().s3, s3, None, outpath, remote, files, auth['flag'])
     if result is not None:
         delete_dir(outpath)
+        print('Put File S3 End !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
 
-    print('Put File S3 End !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
     return result
 
 def download_s3(auth, files):
