@@ -1,0 +1,18 @@
+{
+    "flag": "file"
+    ,"filename": "pdf.pdf"
+    ,"data": [
+        {
+            "filename": "index.html"
+            ,"data": "PCFET0NUWVBFIGh0bWw+CjxodG1sPgogIDxoZWFkPgogICAgPG1ldGEgY2hhcnNldD0idXRmLTgiPgogICAgPHRpdGxlPlNDIEZpbGUgQVBJIHYwLjEuMDwvdGl0bGU+CiAgICA8bGluayByZWw9InN0eWxlc2hlZXQiIHR5cGU9InRleHQvY3NzIiBocmVmPSJpbmRleC5jc3MiPgogICAgPGxpbmsgcmVsPSJzdHlsZXNoZWV0IiB0eXBlPSJ0ZXh0L2NzcyIgaHJlZj0ic3R5bGUuY3NzIj4KICA8L2hlYWQ+Cjxib2R5Pgo8ZGl2IGNsYXNzPSJjYXJkIj4KICAgIEZpbGUgQVBJIOaXpeacrOiqngo8L2Rpdj4KPGRpdiBjbGFzcz0iYm94Ij4KICBGaWxlIEFQSSDml6XmnKzoqp4gMDIKPC9kaXY+CjwvYm9keT4KPC9odG1sPg=="
+        }
+        ,{
+            "filename": "index.css"
+            ,"data": "ZGl2LmJveCB7CiAgICBiYWNrZ3JvdW5kOnJlZDsKICAgIGxpbmUtaGVpZ2h0OjEuNTsKfQ=="
+        }
+        ,{
+            "filename": "style.css"
+            ,"data": "ZGl2IHsKICAgIGNvbG9yOmJsdWU7CiAgICBsaW5lLWhlaWdodDoxLjU7Cn0="
+        }
+    ]
+}

@@ -23,8 +23,9 @@ def get_ext(filename):
     return filename.split(".")[-1]
 
 def save_files(files, outdir):
-    if os.path.isdir(outdir) == False:
-        os.mkdir(outdir)
+    make_dir_local(outdir)
+    # if os.path.isdir(outdir) == False:
+    #     os.mkdir(outdir)
 
     result = []
     for file in files:

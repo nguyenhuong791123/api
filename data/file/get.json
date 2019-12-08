@@ -1,0 +1,11 @@
+{
+    "flag": "file"
+    ,"zip": true
+    ,"zippw": "1234"
+    ,"files": [
+        {
+            "filename": "001-home.svg"
+            ,"path": "/home/huongnv/20191127040812.761"
+        }
+    ]
+}
