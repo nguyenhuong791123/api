@@ -4,7 +4,6 @@ import base64
 import smtplib
 import ssl
 import shutil
-import datetime
 import zipfile
 import pyminizip
 from email.mime.application import MIMEApplication
@@ -13,6 +12,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email.utils import formatdate
 from email import encoders
+
 from ..cm.utils import *
 from ..cm.dates import get_datetime
 from ..cm.files import get_dir, make_dir_local, delete_dir
