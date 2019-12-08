@@ -15,7 +15,7 @@ from email.utils import formatdate
 from email import encoders
 from ..cm.utils import *
 from ..cm.dates import get_datetime
-from ..cm.files import get_dir, make_dir_local
+from ..cm.files import get_dir, make_dir_local, delete_dir
 from ..cm.mails import *
 
 def send_mail(auth, objs):
@@ -71,8 +71,8 @@ def send_mail(auth, objs):
                 smtpclient.quit()
             if outpath is not None and os.path.isdir(outpath):
                 shutil.rmtree(outpath)
-            if zip is not None and zip == True and os.path.isfile(updir + dir + '_zip.zip'):
-                os.remove(updir + dir + '_zip.zip')
+            if zip is not None and zip == True and os.path.isfile(updir + '/' + dir + '_zip.zip'):
+                os.remove(updir + '/' + dir + '_zip.zip')
 
         results.append(result)
 
@@ -147,9 +147,10 @@ def add_temps(msg, obj, dir, updir, outpath):
             pyminizip.compress_multiple(src, [], zipname, zippw, level)
 
         os.chdir('../')
-        if os.path.isfile(updir + zipname):
+        zippath = updir + '/' + zipname
+        if os.path.isfile(zippath):
             attach = MIMEBase('application', 'zip')
-            attach.set_payload(open(updir + zipname, 'rb').read())
+            attach.set_payload(open(zippath, 'rb').read())
             encoders.encode_base64(attach)
             attach.add_header('Content-Disposition', 'attachment', filename=zipname)
             msg.attach(attach)

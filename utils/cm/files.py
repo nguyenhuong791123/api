@@ -274,8 +274,8 @@ def make_dir_local(dir):
     return dir
 
 def delete_dir(path):
-    print(path)
-    print(os.getcwd())
+    # print(path)
+    # print(os.getcwd())
     if path is not None and os.path.isdir(path):
         shutil.rmtree(path)
 
