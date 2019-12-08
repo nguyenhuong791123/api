@@ -271,6 +271,7 @@ def mkdir_ssh(ssh, dir):
 def make_dir_local(dir):
     if os.path.isdir(dir) == False:
         os.mkdir(dir)
+    return dir
 
 def delete_dir(path):
     print(path)

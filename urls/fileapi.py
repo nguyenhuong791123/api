@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify, make_response
 # from flask_jwt_extended import ( JWTManager, jwt_required, create_access_token, get_jwt_identity )
 
-from utils.server import default_server
+from utils.server import default_server, Mode
 from utils.cm.files import delete_dir
 from utils.file.sftp import transport_sftp, download_sftp
 from utils.file.ftp import transport_ftp, download_ftp

@@ -1,7 +1,8 @@
 # -*- coding: UTF-8 -*-
+import json
 from flask import Blueprint, request, jsonify, make_response
 
-from utils.server import default_server
+from utils.server import default_server, Mode
 from utils.mail.smtp import send_mail
 from utils.mail.pop3 import get_pop3
 from utils.mail.imap import get_imap
@@ -27,7 +28,7 @@ def imap():
 
 @app.route('/pop3', methods=[ 'POST' ])
 def pop3():
-    auth = Mone
+    auth = None
     if request.method == 'POST':
         if request.json is not None:
             if is_json(request.json):
@@ -45,6 +46,7 @@ def pop3():
 @app.route('/smtp', methods=[ 'POST' ])
 def smtp():
     auth = None
+    mails = None
     if request.method == 'POST':
         if request.json is not None:
             if is_json(request.json):
@@ -62,4 +64,6 @@ def smtp():
 
     # result = {}
     # result['result'] = send_mail(auth, mails)
+    print(auth)
+    print(mails)
     return jsonify(send_mail(auth, mails)), 200

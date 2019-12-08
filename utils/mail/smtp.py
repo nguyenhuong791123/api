@@ -13,10 +13,13 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email.utils import formatdate
 from email import encoders
-from ..cm.utils import is_exist
+from ..cm.utils import *
+from ..cm.dates import get_datetime
+from ..cm.files import get_dir, make_dir_local
+from ..cm.mails import *
 
 def send_mail(auth, objs):
-    print('Send Mail Start[ ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f') + ' ]')
+    print('Send Mail Smtp Start !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     results = []
     for obj in objs:
         if is_exist(obj, 'from') == False or is_empty(obj['from']) == True or is_exist(obj, 'to') == False or is_empty(obj['to']) == True:
@@ -30,18 +33,12 @@ def send_mail(auth, objs):
             recipients.append(ac)
 
         msg = getMIMEMultipart(obj)
-        outpath = None
-        updir = './upload/'
-        files = obj['files']
-        if is_exist(obj, 'files') == False or len(files) <= 0:
-            return msg
-
-        dt = datetime.datetime.now()
-        dir = dt.strftime('%Y%m%d%H%M%S.%f')[:-3]
-        outpath = updir + dir
-        if os.path.isdir(outpath) == False:
-            os.mkdir(outpath)
-        msg = add_temps(msg, obj, dir, updir, outpath)
+        if is_exist(obj, 'files') and len(obj['files']) > 0:
+            # print(os.getcwd())
+            updir = make_dir_local('upload')
+            dir = get_dir(None)
+            outpath = make_dir_local(os.path.join(updir, dir))
+            msg = add_temps(msg, obj, dir, updir, outpath)
 
         result = {}
         smtpclient = None
@@ -79,7 +76,7 @@ def send_mail(auth, objs):
 
         results.append(result)
 
-    print('Send Mail End[ ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f') + ' ]')
+    print('Send Mail Smtp End!!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     return results
 
 def getMIMEMultipart(obj):

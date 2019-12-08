@@ -11,8 +11,10 @@ from email.parser import Parser
 from email.header import decode_header
 from email.utils import parseaddr
 
+from ..cm.dates import get_datetime
+
 def get_pop3(auth):
-    print('POP3 Start[ ' + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f') + ' ]')
+    print('Get Mail Pop3 Start !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     host = auth['host']
     nego_combo = (auth['auth'], auth['port']) # ("通信方式", port番号)
 
@@ -80,6 +82,8 @@ def get_pop3(auth):
         mail['content'] = get_content(msg)
 
     result.append(mail)
+
+    print('Get Mail Pop3 End !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     return result
 
 # ヘッダを取得

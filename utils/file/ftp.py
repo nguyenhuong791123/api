@@ -7,7 +7,7 @@ from ..cm.files import *
 from ..cm.dates import get_datetime
 
 def transport_ftp(auth, files):
-    print('Put File Ftp Start !!!' + get_datetime('%Y-%m-%d %H:%M:%S', None))
+    print('Put File Ftp Start !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     ftp = connect(auth)
     if ftp is None:
         return None

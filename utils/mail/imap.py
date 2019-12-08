@@ -1,16 +1,11 @@
 # -*- coding: UTF-8 -*-
 import base64
 from imap_tools import MailBox, Q
-from ..cm.utils import is_exist
+from ..cm.utils import is_empty, is_exist
+from ..cm.dates import get_datetime
 
 def get_imap(auth):
-    auth['host'] = "imap.gmail.com"
-    auth['port'] = "993"
-    auth['username'] = "nguyenhuong791123@gmail.com"
-    auth['password'] = "huong080"
-    auth['box'] = "IMAP4BOX" #"IMAP4BOX"
-    auth['count'] = 5
-
+    print('Get Mail Imap Start !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     mbox = get_mbox(auth)
     result = []
     for m in mbox.fetch():
@@ -36,6 +31,7 @@ def get_imap(auth):
 
         result.append(obj)
 
+    print('Get Mail Imap End !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     return result
 
 def get_mbox(auth):
