@@ -24,6 +24,8 @@ from ..cm.utils import is_exist
 from ..cm.files import make_dir_get_outpath, save_base64s, save_files, delete_dir
 
 def img_to_text(files, language, layout):
+    if files is None or len(files) <= 0:
+        return None
     sfs = None
     outpath = make_dir_get_outpath('download')
     if is_exist(files[0], 'data'):
@@ -34,6 +36,7 @@ def img_to_text(files, language, layout):
         return None
 
     result = []
+    print(sfs)
     for file in sfs:
         filename = file['filename']
         fullpath = os.path.join(file['data'], filename)
@@ -42,13 +45,14 @@ def img_to_text(files, language, layout):
         f['data'] = get_text(fullpath, language, layout)
         result.append(f)
 
-    if os.path.isdir(outpath):
-        delete_dir(outpath)
+    # if os.path.isdir(outpath):
+    #     delete_dir(outpath)
 
     return result
 
 def get_text(stream, language, layout):
-    print(stream)
+    # print(os.getcwd())
+    # print(stream)
     if stream is None:
         return ''
 

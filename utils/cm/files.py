@@ -40,6 +40,25 @@ def save_files(files, outdir):
 
     return result
 
+def save_base64s(files, outdir):
+    make_dir_local(outdir)
+
+    result = []
+    for file in files:
+        if file is None:
+            continue
+
+        filename = file['filename']
+        local = outdir + '/' + filename
+        convert_b64_string_to_file(file['data'], local)
+
+        f = {}
+        f['filename'] = filename
+        f['data'] = outdir
+        result.append(f)
+
+    return result
+
 def zip_files(ziphome, zipname, zippw, level):
     if ziphome is None:
         ziphome = './'

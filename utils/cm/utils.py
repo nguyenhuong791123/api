@@ -20,16 +20,22 @@ def is_mail(val):
     return (val is not None)
 
 def is_exist(obj, key):
-    return key in obj.keys()
+    try:
+        return key in obj.keys()
+    except Exception as e:
+        print(str(e))
+        return False
 
 def is_json(obj):
-    keys = obj.keys()
     try:
+        keys = obj.keys()
         if keys is None:
             data = json.load(obj)
             keys = data.keys()
+    except Exception as ex:
+        print(str(ex))
     except json.JSONDecodeError as e:
-        print('JSONDecodeError: ', e)
+        print('JSONDecodeError: ', str(e))
     return (keys is not None and len(keys) > 0)
 
 def is_type(obj, istype):

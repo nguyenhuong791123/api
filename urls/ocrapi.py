@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-from flask import Blueprint, Flask, request, render_template, jsonify, make_response
+from flask import Blueprint, Flask, request, jsonify, make_response
 
 from utils.ocr.ocr import img_to_text
 
@@ -13,6 +13,7 @@ def ocr():
         if request.json is not None and (files is None or len(files) <= 0):
             files = request.json.get('files')
 
+        print(len(files))
         if files is not None and len(files) > 0:
             result = img_to_text(files, None, None)
 
