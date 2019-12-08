@@ -3,15 +3,13 @@ import os
 import json
 from flask import Flask, request, render_template, redirect, jsonify
 from flask_cors import CORS
-# from flask_jwt_extended import ( JWTManager )
 
 from utils.cm.agent import parse_http_accept_language, UserAgent
 from utils.cm.dates import get_datetime
 from readme.readme import readme_read
-
-# from auth import auth
 from urls import fileapi
 from urls import mailapi
+from urls import pdfapi
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -21,6 +19,7 @@ CORS(app, supports_credentials=True)
 # app.register_blueprint(auth.app)
 app.register_blueprint(fileapi.app)
 app.register_blueprint(mailapi.app)
+app.register_blueprint(pdfapi.app)
 
 @app.after_request
 def after_request(response):
@@ -33,7 +32,7 @@ def after_request(response):
 @app.before_request
 def before_request():
     ag = UserAgent(request)
-    # print(ag.to_json())
+    print(ag.to_json())
     # print(request.headers.__dict__)
     # print(request.headers.get('authorization', None))
     # global lc
