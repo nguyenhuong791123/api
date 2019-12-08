@@ -1,0 +1,1 @@
+sudo apt-get install -y libtesseract-dev tesseract-ocr tesseract-ocr-jpn
