@@ -293,12 +293,6 @@ def make_dir_local(dir):
         os.mkdir(dir)
     return dir
 
-def delete_dir(path):
-    # print(path)
-    # print(os.getcwd())
-    if path is not None and os.path.isdir(path):
-        shutil.rmtree(path)
-
 def make_dir_get_outpath(dir):
     if is_empty(dir):
         return './'
@@ -307,3 +301,13 @@ def make_dir_get_outpath(dir):
     outpath = get_dir(dir)
     make_dir_local(outpath)
     return outpath
+
+def delete_dir(path):
+    # print(path)
+    # print(os.getcwd())
+    if path is not None and os.path.isdir(path):
+        shutil.rmtree(path)
+
+def delete_file(path):
+    if path is not None and os.path.isfile(path):
+        os.remove(path)
