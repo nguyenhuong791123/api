@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 from barcode import generate
+from pyzbar.pyzbar import decode
+from pyzbar.pyzbar import ZBarSymbol
 import qrcode
 import qrcode.image.svg
+from PIL import Image
+# from pandas import DataFrame
 
 from .utils import is_empty, is_exist, convert_file_to_b64_string
 from .files import delete_dir, delete_file
-
 
 def create_code(flag, ismode, code, value, outpath, filename, options):
     result = {}
@@ -45,7 +48,26 @@ def create_code(flag, ismode, code, value, outpath, filename, options):
             b64 = str(convert_file_to_b64_string(local))
             if b64 is not None:
                 result['data'] = b64[2:(len(b64)-1)]
-            delete_file(local)
+
+    return result
+
+def get_code(outpath, filename, symbols):
+    result = {}
+    try:
+        fullpath = os.path.join(outpath, filename)
+        img = Image.open(fullpath)
+        if symbols is not None:
+            data = decode(Image.open(img), symbols=[ symbols ])
+        else:
+            data = decode(Image.open(img))
+        if data is not None:
+            result['data'] = str(data)
+    except Exception as ex:
+        result['msg'] = str(ex)
+    except IOError as err:
+        result['msg'] = str(err)
+    finally:
+        result['filename'] = filename
 
     return result
 
@@ -112,16 +134,57 @@ def create_code(flag, ismode, code, value, outpath, filename, options):
 
 #     return result
 
-def is_bar_code(mode):
-    if is_empty(mode):
+def is_bar_code(code):
+    if is_empty(code):
         return False
-    # CALLABLES = types.FunctionType, types.MethodType
+    CALLABLES = types.FunctionType, types.MethodType
     for key, value in BarCodes().__dict__.items():
-        if is_empty(key) or key != mode:
+        if isinstance(value, CALLABLES) or is_empty(key) or key != code:
             continue
-        return true
-        # if not isinstance(value, CALLABLES):
-            # print(key)
+        return True
+    return False
+
+def get_zbar_symbol(code):
+    bar = is_bar_code(code)
+    if bar == False or code != 'qr':
+        return None
+
+    if code == 'qr':
+       return ZBarSymbol.QRCODE
+    else:
+        codes = BarCodes()
+        if code == codes.code39:
+            return ZBarSymbol.CODE39
+        elif code == codes.code128:
+            return ZBarSymbol.CODE128
+        elif code == codes.ean:
+            return ZBarSymbol.EAN
+        elif code == codes.ean13:
+            return ZBarSymbol.EAN13
+        elif code == codes.gs1:
+            return ZBarSymbol.GS1
+        elif code == codes.gtin:
+            return ZBarSymbol.GTIN
+        elif code == codes.isbn:
+            return ZBarSymbol.ISBN
+        elif code == codes.isbn10:
+            return ZBarSymbol.ISBN10
+        elif code == codes.isbn13:
+            return ZBarSymbol.ISBN13
+        elif code == codes.issn:
+            return ZBarSymbol.ISSN
+        elif code == codes.jan:
+            return ZBarSymbol.JAN
+        elif code == codes.pzn:
+            return ZBarSymbol.PZN
+        elif code == codes.upc:
+            return ZBarSymbol.UPC
+        elif code == codes.upca:
+            return ZBarSymbol.UPCA
+        else:
+            return None
+
+    return None
 
 class QrCode():
     def __init__(self):

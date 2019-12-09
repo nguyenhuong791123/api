@@ -6,8 +6,8 @@ from utils.code.barqr import get_codes
 
 app = Blueprint('codeapi', __name__)
 
-@app.route('/getcodes', methods=[ 'POST' ])
-def getcodes():
+@app.route('/putcodes', methods=[ 'POST' ])
+def putcodes():
     codes = None
     result = []
     if request.method == 'POST':
@@ -21,5 +21,28 @@ def getcodes():
             result.append(obj)
             return jsonify(result), 200
 
-    result = get_codes(codes)
+    result = put_codes(codes)
+    return jsonify(result), 200
+
+@app.route('/getcodes', methods=[ 'POST' ])
+def getcodes():
+    auth = {}
+    codes = None
+    result = []
+    if request.method == 'POST':
+        codes = request.files.getlist('file')
+        if request.json is not None:
+            codes = request.json.get('codes')
+            auth['flag'] = 'json'
+        else:
+            auth['code'] = request.form.get('code')
+
+        if codes is None or len(codes) <= 0:
+            obj = {}
+            obj['name'] = None
+            obj['data'] = 'ファイルデータは必須です。'
+            result.append(obj)
+            return jsonify(result), 200
+
+    result = get_codes(auth, codes)
     return jsonify(result), 200
