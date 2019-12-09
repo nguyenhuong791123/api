@@ -11,6 +11,7 @@ from urls import fileapi
 from urls import mailapi
 from urls import pdfapi
 from urls import ocrapi
+from urls import codeapi
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -22,6 +23,7 @@ app.register_blueprint(fileapi.app)
 app.register_blueprint(mailapi.app)
 app.register_blueprint(pdfapi.app)
 app.register_blueprint(ocrapi.app)
+app.register_blueprint(codeapi.app)
 
 @app.after_request
 def after_request(response):
