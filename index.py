@@ -25,26 +25,26 @@ app.register_blueprint(pdfapi.app)
 app.register_blueprint(ocrapi.app)
 app.register_blueprint(codeapi.app)
 
-@app.after_request
-def after_request(response):
-    print('After Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
-    return response
+# @app.after_request
+# def after_request(response):
+#     print('After Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
+#     return response
 
 # lc = []
 # curl -XGET -d "apikey={API-KEY}" http://192.168.56.53:7085/
 # curl -H "Authorization: token OAUTH-TOKEN" http://192.168.56.53:7085/
-@app.before_request
-def before_request():
-    ag = UserAgent(request)
-    print(ag.to_json())
-    # print(request.headers.__dict__)
-    # print(request.headers.get('authorization', None))
-    # global lc
-    # lc.append(len(lc) + 1)
-    # print(lc)
-    print('Before Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
-    if ag.auth_api_key is None and ag.path[:4] != '/api' and ag.path != '/':
-        return jsonify({"error": "Auth Info or API Key is Required !!!"}), 401
+# @app.before_request
+# def before_request():
+#     ag = UserAgent(request)
+#     print(ag.to_json())
+#     # print(request.headers.__dict__)
+#     # print(request.headers.get('authorization', None))
+#     # global lc
+#     # lc.append(len(lc) + 1)
+#     # print(lc)
+#     print('Before Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
+#     if ag.auth_api_key is None and ag.path[:4] != '/api' and ag.path != '/':
+#         return jsonify({"error": "Auth Info or API Key is Required !!!"}), 401
 
 @app.route('/', methods=[ 'GET' ])
 def index():

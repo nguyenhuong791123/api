@@ -10,10 +10,11 @@ from PIL import Image
 from .utils import is_empty, is_exist, convert_file_to_b64_string
 from .files import delete_dir, delete_file
 
-def create_code(flag, ismode, code, value, outpath, filename, options):
+def create_code(flag, code, value, outpath, filename, options):
     result = {}
     try:
         os.chdir(outpath)
+        ismode = is_bar_code(code)
         if ismode:
             code = code.upper()
             filename = generate(code, value, output=filename)

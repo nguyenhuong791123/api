@@ -2,17 +2,26 @@
 from flask import Blueprint, request, jsonify, make_response
 
 from utils.cm.files import delete_dir
-from utils.code.barqr import get_codes
+from utils.code.barqr import put_codes, get_codes
 
 app = Blueprint('codeapi', __name__)
 
 @app.route('/putcodes', methods=[ 'POST' ])
 def putcodes():
+    auth = {}
     codes = None
     result = []
     if request.method == 'POST':
         if request.json is not None:
             codes = request.json.get('codes')
+            auth['flag'] = 'json'
+        else:
+            auth['code'] = request.form.get('code')
+            code = {}
+            code['value'] = request.form.get('value')
+            code['filename'] = request.form.get('filename')
+            codes = []
+            codes.append(code)
 
         if codes is None or len(codes) <= 0:
             obj = {}

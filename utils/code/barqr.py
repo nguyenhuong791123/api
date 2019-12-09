@@ -1,18 +1,25 @@
 # -*- coding: utf-8 -*-
 from ..cm.utils import is_exist, is_empty
-from ..cm.codes import is_bar_code, get_zbar_symbol
+from ..cm.codes import is_bar_code, get_zbar_symbol, create_code, get_code
 from ..cm.files import get_dir, delete_dir
 
-def put_codes(codes):
+def put_codes(auth, codes):
+    print(auth)
+    print(codes)
     result = None
-    if codes is None or len(codes) <= 0:
+    if codes is None or len(codes) <= 0 or is_exist(auth, 'flag') == False:
         return result
 
     result = []
+    flag = auth['flag']
+    code = None
     outpath = make_dir_get_outpath('download')
+    if is_exist(auth, 'code'):
+        code = auth['code']
     for c in codes:
-        ismode = is_bar_code(c['code'])
-        if ismode == False and c['code'] != 'qr':
+        if is_exist(c, 'code'):
+            code = c['code']
+        if is_empty(code):
             continue
         if is_exist(c, 'value') == False or is_empty(c['value']):
             continue
@@ -21,14 +28,15 @@ def put_codes(codes):
         filename = value
         if is_exist(c, 'filename') and is_empty() == False:
             filename = c['filename']
-
-        flag = 'json'
         if is_exist(c, 'flag'):
             flag = c['flag']
+        else:
+            flag = auth['flag']
+
         options = None
-        if c['code'] == 'qr' and is_exist(c, 'options'):
+        if code == 'qr' and is_exist(c, 'options'):
             options = c['options']
-        obj = create_code(flag, ismode, c['code'], value, outpath, filename, options)
+        obj = create_code(flag, code, value, outpath, filename, options)
     
         if obj is not None:
             result.append(obj)
@@ -39,6 +47,8 @@ def put_codes(codes):
     return result
 
 def get_codes(auth, codes):
+    print(auth)
+    print(codes)
     result = None
     if codes is None or len(codes) <= 0 or is_exist(auth, 'flag') == False:
         return result
