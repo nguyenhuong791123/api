@@ -1,37 +1,34 @@
 # -*- coding: utf-8 -*-
-from ..cm.utils import is_exist, is_empty
+import os
+from ..cm.utils import is_exist, is_empty, convert_b64_string_to_file
 from ..cm.codes import is_bar_code, get_zbar_symbol, create_code, get_code
-from ..cm.files import get_dir, delete_dir
+from ..cm.files import get_dir, delete_dir, make_dir_get_outpath, zip_result
 
 def put_codes(auth, codes):
-    print(auth)
-    print(codes)
     result = None
-    if codes is None or len(codes) <= 0 or is_exist(auth, 'flag') == False:
+    if codes is None or len(codes) <= 0:
         return result
 
     result = []
-    flag = auth['flag']
-    code = None
+    flag = None
+    if is_exist(auth, 'flag'):
+        flag = auth['flag']
     outpath = make_dir_get_outpath('download')
-    if is_exist(auth, 'code'):
-        code = auth['code']
+    code = None
     for c in codes:
         if is_exist(c, 'code'):
             code = c['code']
+        else:
+            code = auth['code']
         if is_empty(code):
             continue
-        if is_exist(c, 'value') == False or is_empty(c['value']):
+        if is_exist(c, 'data') == False or is_empty(c['data']):
             continue
 
-        value = c['value']
+        value = c['data']
         filename = value
-        if is_exist(c, 'filename') and is_empty() == False:
+        if is_exist(c, 'filename') and is_empty(c['filename']) == False:
             filename = c['filename']
-        if is_exist(c, 'flag'):
-            flag = c['flag']
-        else:
-            flag = auth['flag']
 
         options = None
         if code == 'qr' and is_exist(c, 'options'):
@@ -41,30 +38,36 @@ def put_codes(auth, codes):
         if obj is not None:
             result.append(obj)
 
-    if result is not None:
-        delete_dir(outpath)
+    if flag != 'json' and is_exist(auth, 'zip') and is_exist(auth, 'zippw'):
+        result = zip_result(result, outpath, auth['zip'], auth['zippw'])
 
     return result
 
 def get_codes(auth, codes):
-    print(auth)
-    print(codes)
     result = None
-    if codes is None or len(codes) <= 0 or is_exist(auth, 'flag') == False:
+    if codes is None or len(codes) <= 0:
         return result
 
     result = []
     outpath = make_dir_get_outpath('download')
-    flag = auth['flag']
-    code = auth['code']
+    flag = None
+    if is_exist(auth, 'flag'):
+        flag = auth['flag']
+    code = None
     for c in codes:
+        if is_exist(c, 'code'):
+            code = c['code']
+        else:
+            code = auth['code']
+        if is_empty(code):
+            continue
+
         symbols = get_zbar_symbol(code)
         if flag is not None and flag == 'json':
             filename = get_dir(None) + '.png'
-            if is_exist(c, 'filename'):
+            if is_exist(c, 'filename') and is_empty(c['filename']) == False:
                 filename = c['filename']
-            if is_exist(c, 'code'):
-                code = c['code']
+
             symbols = get_zbar_symbol(code)
             local = os.path.join(outpath, filename)
             convert_b64_string_to_file(c['data'], local)
@@ -72,9 +75,9 @@ def get_codes(auth, codes):
             filename = c.filename
             c.save(os.path.join(outpath, filename))
 
-        obj = {}
-        obj['filename'] = filename
-        obj['data'] = get_code(outpath, filename, symbols)
-        result.append(obj)
+        result.append(get_code(outpath, filename, symbols))
+
+    if result is not None and len(result) > 0:
+        delete_dir(outpath)
 
     return result

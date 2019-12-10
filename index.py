@@ -7,6 +7,7 @@ from flask_cors import CORS
 from utils.cm.agent import parse_http_accept_language, UserAgent
 from utils.cm.dates import get_datetime
 from readme.readme import readme_read
+
 from urls import fileapi
 from urls import mailapi
 from urls import pdfapi
@@ -18,33 +19,35 @@ CORS(app, supports_credentials=True)
 # app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
 # jwt = JWTManager(app)
 
+for ap in [ fileapi.app, mailapi.app, pdfapi.app, ocrapi.app, codeapi.app ]:
+    app.register_blueprint(ap)
 # app.register_blueprint(auth.app)
-app.register_blueprint(fileapi.app)
-app.register_blueprint(mailapi.app)
-app.register_blueprint(pdfapi.app)
-app.register_blueprint(ocrapi.app)
-app.register_blueprint(codeapi.app)
+# app.register_blueprint(fileapi.app)
+# app.register_blueprint(mailapi.app)
+# app.register_blueprint(pdfapi.app)
+# app.register_blueprint(ocrapi.app)
+# app.register_blueprint(codeapi.app)
 
-# @app.after_request
-# def after_request(response):
-#     print('After Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
-#     return response
+@app.after_request
+def after_request(response):
+    print('After Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
+    return response
 
 # lc = []
 # curl -XGET -d "apikey={API-KEY}" http://192.168.56.53:7085/
 # curl -H "Authorization: token OAUTH-TOKEN" http://192.168.56.53:7085/
-# @app.before_request
-# def before_request():
-#     ag = UserAgent(request)
-#     print(ag.to_json())
-#     # print(request.headers.__dict__)
-#     # print(request.headers.get('authorization', None))
-#     # global lc
-#     # lc.append(len(lc) + 1)
-#     # print(lc)
-#     print('Before Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
-#     if ag.auth_api_key is None and ag.path[:4] != '/api' and ag.path != '/':
-#         return jsonify({"error": "Auth Info or API Key is Required !!!"}), 401
+@app.before_request
+def before_request():
+    ag = UserAgent(request)
+    print(ag.to_json())
+    # print(request.headers.__dict__)
+    # print(request.headers.get('authorization', None))
+    # global lc
+    # lc.append(len(lc) + 1)
+    # print(lc)
+    print('Before Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
+    if ag.auth_api_key is None and ag.path[:4] != '/api' and ag.path != '/':
+        return jsonify({"error": "Auth Info or API Key is Required !!!"}), 401
 
 @app.route('/', methods=[ 'GET' ])
 def index():

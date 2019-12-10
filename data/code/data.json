@@ -1,0 +1,19 @@
+{
+    "auth": {
+        "flag": ""
+        ,"code": "code39"
+        ,"zip": true
+        ,"zippw": "1234"
+    }
+    ,"codes": [
+        {
+            "filename": ""
+            ,"data": "qr12345"
+            ,"code": "qr"
+        }
+        ,{
+            "filename": ""
+            ,"data": "code39code"
+        }
+    ]
+}

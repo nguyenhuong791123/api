@@ -17,8 +17,16 @@ def get_dir(dir):
     else:
         return os.path.join(dir, outdir)
 
+def get_filename(fullpath):
+    if is_empty(fullpath):
+        return None
+    path, filename = os.path.split(fullpath)
+    if filename is not None:
+        return filename
+    return None
+
 def get_ext(filename):
-    if filename is None:
+    if filename is None or filename.find('.') < 0:
         return None
     return filename.split(".")[-1]
 
