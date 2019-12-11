@@ -4,14 +4,18 @@ import sys
 import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_jwt_extended import ( JWTManager, jwt_required )
+from flask_jwt_extended import ( JWTManager, get_jwt_identity, jwt_required )
 
 from utils.cm.resreq import load_apis
 from utils.cm.agent import UserAgent
 from utils.cm.dates import get_datetime
 
 app = Flask(__name__)
-app.config['JWT_SECRET_KEY'] = 'super-secret'  # Change this!
+app.config['JWT_TOKEN_LOCATION']      = ['cookies']
+app.config['JWT_ACCESS_COOKIE_PATH']  = '/token'
+app.config['JWT_REFRESH_COOKIE_PATH'] = '/refresh'
+app.config['JWT_COOKIE_CSRF_PROTECT'] = False
+app.config['JWT_SECRET_KEY']          = 'super-secret'  # Change this!
 jwt = JWTManager(app)
 
 CORS(app, supports_credentials=True)
@@ -30,9 +34,9 @@ def after_request(response):
 def before_request():
     print('Before Request !!![' + get_datetime('%Y-%m-%d %H:%M:%S', None) + ']')
     ag = UserAgent(request)
-    if ag.api_token is None:
-        ag.set_api_token()
-    print(ag.api_token)
+    # if ag.api_token is None:
+    #     ag.set_api_token()
+    # print(ag.api_token)
     # print(ag.to_json())
     # print(request.__dict__)
     # global lc

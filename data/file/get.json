@@ -1,5 +1,12 @@
 {
-    "flag": "file"
+    "auth": {
+        "host": "sc-sftp-01"
+        ,"port": 22
+        ,"username": "huongnv"
+        ,"password": "Nguyen080!"
+        ,"home": "/home/"
+    }
+    ,"flag": "file"
     ,"zip": true
     ,"zippw": "1234"
     ,"files": [

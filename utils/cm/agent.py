@@ -4,6 +4,8 @@ import locale
 import json
 from flask_jwt_extended import ( create_access_token )
 
+from .dates import token_expires
+
 LANGUAGE_CODES = [ "en", "ja", "vi" ]
 def to_locale(language, to_lower=False):
     p = language.find('-')
@@ -19,7 +21,6 @@ def to_locale(language, to_lower=False):
         return language.lower()
 
 def parse_accept_lang_header(lang_string):
-    # From django.utils.translation.trans_real.parse_accept_lang_header
     accept_language_re = re.compile(r'''
             ([A-Za-z]{1,8}(?:-[A-Za-z]{1,8})*|\*)         # "en", "en-au", "x-y-z", "*"
             (?:\s*;\s*q=(0(?:\.\d{,3})?|1(?:.0{,3})?))?   # Optional "q=1.00", "q=0.8"
@@ -103,9 +104,9 @@ class UserAgent():
         if token is not None:
             return token.replace('token ', '')
         elif self.auth is not None:
-            return create_access_token(identity=self.auth.username)
+            return create_access_token(identity=self.auth.username, expires_delta=token_expires())
         elif self.auth is None and self.api_key is not None:
-            return create_access_token(identity=self.api_key)
+            return create_access_token(identity=self.api_key, expires_delta=token_expires())
         else:
             return None
 

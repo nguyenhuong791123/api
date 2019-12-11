@@ -15,18 +15,13 @@ app = Blueprint('fileapi', __name__)
 @app.route('/putfiles', methods=[ 'POST' ])
 def putfiles():
     auth = {}
-    auth['flag'] = 'file'
-    auth['mode'] = Mode().s3
-    print(auth)
-    auth = default_server(auth)
-    print(auth)
-
     files = None
     result = []
     if request.method == 'POST':
         files = request.files.getlist('file')
         if request.json is not None and (files is None or len(files) <= 0):
             files = request.json.get('files')
+            auth = request.json.get('auth')
             auth['flag'] = 'json'
 
         # print(files)
@@ -37,6 +32,8 @@ def putfiles():
             result.append(obj)
             return jsonify(result), 200
 
+    auth['mode'] = Mode().s3
+    auth = default_server(auth)
     m = Mode()
     mode = auth['mode']
     if mode == m.sftp:
@@ -53,15 +50,10 @@ def putfiles():
 @app.route('/getfiles', methods=[ 'POST' ])
 def getfiles():
     auth = {}
-    auth['flag'] = 'file'
-    auth['mode'] = Mode().sftp
-    print(auth)
-    auth = default_server(auth)
-    print(auth)
-
     files = None
     if request.method == 'POST':
         if request.json is not None and (files is None or len(files) <= 0):
+            auth = request.json.get('auth')
             auth['flag'] = request.json.get('flag')
             auth['zip'] = request.json.get('zip')
             auth['zippw'] = request.json.get('zippw')
@@ -85,6 +77,9 @@ def getfiles():
             obj['data'] = 'ファイルデータは必須です。'
             return jsonify(obj), 200
 
+    auth['flag'] = 'file'
+    auth['mode'] = Mode().sftp
+    auth = default_server(auth)
     m = Mode()
     mode = auth['mode']
     obj = None

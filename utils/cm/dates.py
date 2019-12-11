@@ -43,3 +43,6 @@ def get_pattern(date, time, regex, msec):
             return d.hour + d.min + d.seconds + ms
     else:
         return d.hour + ':' + d.minute + ':' + d.seconds + ms
+
+def token_expires():
+    return datetime.timedelta(hours=1)

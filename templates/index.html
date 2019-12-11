@@ -8,8 +8,10 @@
 <body>
 <div class="card">
   {% for rd in rds %}
-    {% if rd[:3] == '## ' %}
-      <h5>{{ rd }}</h5>
+    {% if rd[:4] == '### ' %}
+      <h3>{{ rd[4:] }}</h3>
+    {% elif rd[:3] == '## ' %}
+      <h5>{{ rd[3:] }}</h5>
     {% elif rd[:7] == 'http://' or rd[:8] == 'https://' %}
       <a href={{ rd }} target="_blank">{{ rd }}</a>
     {% else %}
