@@ -6,6 +6,7 @@ import base64
 import re
 import datetime
 import shutil
+import random, string
 
 def is_none(obj):
     if obj is None:
@@ -58,3 +59,10 @@ def convert_file_to_b64_string(fullpath):
 def convert_b64_string_to_file(s, outpath):
     with open(outpath, "wb") as f:
         f.write(base64.b64decode(s))
+
+def random_N_digits(n, num):
+  if n is None or n <= 0:
+    n = 4
+  if num is None or num == False:
+    return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(n))
+  return ''.join(random.choice(string.digits) for _ in range(n))

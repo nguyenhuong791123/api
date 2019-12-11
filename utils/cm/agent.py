@@ -84,9 +84,16 @@ class UserAgent():
         self.user_agent = req.user_agent
         self.cookies = req.cookies
         self.accept_languages = req.accept_languages
+        self.username = self.set_username(req)
         self.auth = self.set_auth(req.authorization)
         self.api_key = self.set_api_key(req.form.get('apikey', None))
-        self.api_token = self.set_api_token(req.headers.get('authorization', None))
+        self.api_token = self.set_api_bearer(req.headers.get('authorization', None))
+
+    def set_username(self, req):        
+        if req.json is not None:
+            return req.json.get('username')
+        else:
+            return req.form.get('username')
 
     def set_auth(self, auth):        
         if auth is not None:
@@ -100,18 +107,27 @@ class UserAgent():
         else:
             return None
 
+    def set_api_bearer(self, bearer):
+        if bearer is not None:
+            return bearer.replace('Bearer ', '')
+
     def set_api_token(self, token):
         if token is not None:
-            return token.replace('token ', '')
-        elif self.auth is not None:
-            return create_access_token(identity=self.auth.username, expires_delta=token_expires())
-        elif self.auth is None and self.api_key is not None:
-            return create_access_token(identity=self.api_key, expires_delta=token_expires())
-        else:
-            return None
+            self.api_token = token
+
+    def set_session_user(self):
+        obj = {}
+        obj['username'] = self.username
+        obj['api_key'] = self.api_key
+        obj['api_token'] = self.api_token
+        obj['accept_languages'] = str(self.accept_languages)
+        return obj
 
     def to_json(self):
         obj = {}
+        obj['username'] = self.username
+        obj['auth'] = self.auth
+        obj['api_key'] = self.api_key
         obj['api_token'] = self.api_token
         obj['host'] = self.host
         obj['path'] = self.path
