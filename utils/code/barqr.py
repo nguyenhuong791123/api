@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
-from ..cm.utils import is_exist, is_empty, convert_b64_string_to_file
-from ..cm.codes import is_bar_code, get_zbar_symbol, create_code, get_code
+from ..cm.utils import is_exist, is_empty, is_type, convert_b64_string_to_file, Obj
+from ..cm.codes import is_bar_code, get_zbar_symbol, create_code, get_code, QrCode
 from ..cm.files import get_dir, delete_dir, make_dir_get_outpath, zip_result
 
 def put_codes(auth, codes):
@@ -31,7 +31,7 @@ def put_codes(auth, codes):
             filename = c['filename']
 
         options = None
-        if code == 'qr' and is_exist(c, 'options'):
+        if code == QrCode().name and is_exist(c, 'options'):
             options = c['options']
         obj = create_code(flag, code, value, outpath, filename, options)
     
@@ -55,7 +55,8 @@ def get_codes(auth, codes):
         flag = auth['flag']
     code = None
     for c in codes:
-        if is_exist(c, 'code'):
+        isFile = is_type(c, Obj().FILESTORAGE)
+        if isFile == False and is_exist(c, 'code'):
             code = c['code']
         else:
             code = auth['code']

@@ -39,10 +39,17 @@ def is_json(obj):
     return (keys is not None and len(keys) > 0)
 
 def is_type(obj, istype):
-    if is_empty(obj):
+    if obj is None:
         return None
-    val = str(type(obj)).replace("<class '", "").replace("'>", "")
-    return (val == istype) # 'str', 'int', 'list', 'bool'
+    objstr = str(type(obj)).replace("<class '", "").replace("'>", "")
+    return (objstr == istype)
+
+class Obj():
+    STR = 'str'
+    INT = 'int'
+    LIST = 'list'
+    BOOL = 'bool'
+    FILESTORAGE = 'werkzeug.datastructures.FileStorage'
 
 def convert_file_to_b64_string(fullpath):
     with open(fullpath, "rb") as f:

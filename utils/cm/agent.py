@@ -2,6 +2,7 @@
 import re
 import locale
 import json
+from flask_jwt_extended import ( create_access_token )
 
 LANGUAGE_CODES = [ "en", "ja", "vi" ]
 def to_locale(language, to_lower=False):
@@ -82,21 +83,35 @@ class UserAgent():
         self.user_agent = req.user_agent
         self.cookies = req.cookies
         self.accept_languages = req.accept_languages
-        self.auth_api_key = self.set_auth(req.authorization, req.form.get('apikey', None), req.headers.get('authorization', None))
+        self.auth = self.set_auth(req.authorization)
+        self.api_key = self.set_api_key(req.form.get('apikey', None))
+        self.api_token = self.set_api_token(req.headers.get('authorization', None))
 
-    def set_auth(self, auth, key, token):
+    def set_auth(self, auth):        
+        if auth is not None:
+            return auth
+        else:
+            return None
+
+    def set_api_key(self, key):
         if key is not None:
             return key
-        elif key is None and token is not None and token[:5] == 'token':
+        else:
+            return None
+
+    def set_api_token(self, token):
+        if token is not None:
             return token.replace('token ', '')
-        elif key is None and auth is not None:
-            return req.authorization.username
+        elif self.auth is not None:
+            return create_access_token(identity=self.auth.username)
+        elif self.auth is None and self.api_key is not None:
+            return create_access_token(identity=self.api_key)
         else:
             return None
 
     def to_json(self):
         obj = {}
-        obj['auth_api_key'] = self.auth_api_key
+        obj['api_token'] = self.api_token
         obj['host'] = self.host
         obj['path'] = self.path
         obj['method'] = self.method

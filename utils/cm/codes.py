@@ -94,7 +94,7 @@ def get_code(outpath, filename, symbols):
     try:
         fullpath = os.path.join(outpath, filename)
         img = Image.open(fullpath)
-        print(os.getcwd())
+        # print(os.getcwd())
         if symbols is not None:
             data = decode(img, symbols=[ symbols ])
         else:
@@ -111,7 +111,7 @@ def get_code(outpath, filename, symbols):
     return result
 
 def is_bar_code(code):
-    if is_empty(code):
+    if is_empty(code) or code == QrCode().name:
         return False
     # CALLABLES = types.FunctionType, types.MethodType
     codes = BarCodes()
@@ -123,49 +123,13 @@ def is_bar_code(code):
     return False
 
 def get_zbar_symbol(code):
-    bar = is_bar_code(code)
-    if bar == False or code != 'qr':
+    if is_empty(code) or (is_bar_code(code) == False and code != QrCode().name):
         return None
-
-    if code == 'qr':
-       return ZBarSymbol.QRCODE
-    else:
-        codes = BarCodes()
-        if code == codes.code39:
-            return ZBarSymbol.CODE39
-        elif code == codes.code128:
-            return ZBarSymbol.CODE128
-        elif code == codes.ean:
-            return ZBarSymbol.EAN
-        elif code == codes.ean13:
-            return ZBarSymbol.EAN13
-        elif code == codes.gs1:
-            return ZBarSymbol.GS1
-        elif code == codes.gtin:
-            return ZBarSymbol.GTIN
-        elif code == codes.isbn:
-            return ZBarSymbol.ISBN
-        elif code == codes.isbn10:
-            return ZBarSymbol.ISBN10
-        elif code == codes.isbn13:
-            return ZBarSymbol.ISBN13
-        elif code == codes.issn:
-            return ZBarSymbol.ISSN
-        elif code == codes.jan:
-            return ZBarSymbol.JAN
-        elif code == codes.pzn:
-            return ZBarSymbol.PZN
-        elif code == codes.upc:
-            return ZBarSymbol.UPC
-        elif code == codes.upca:
-            return ZBarSymbol.UPCA
-        else:
-            return None
-
-    return None
+    return getattr(ZBarSymbol, code.upper())
 
 class QrCode():
     def __init__(self):
+        self.name = 'qrcode'
         self.version = 1
         self.error_correction = qrcode.constants.ERROR_CORRECT_L
         self.factory = None

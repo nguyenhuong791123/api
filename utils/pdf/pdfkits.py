@@ -17,7 +17,7 @@ def get_pdf(obj):
 
     data = obj['data']
     outdir = make_dir_local('download/')
-    if data is not None and is_type(data, 'list') == True and is_empty(data[0]['data']) == False and os.path.isdir(data[0]['data']):
+    if data is not None and is_type(data, Obj.LIST) == True and is_empty(data[0]['data']) == False and os.path.isdir(data[0]['data']):
         outdir = data[0]['data']
     if os.path.isdir(outdir) == False:
         os.mkdir(outdir)

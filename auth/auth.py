@@ -1,8 +1,5 @@
 from flask import Blueprint, request, jsonify, make_response
-from flask_jwt_extended import (
-    JWTManager, jwt_required, create_access_token,
-    get_jwt_identity
-)
+from flask_jwt_extended import ( JWTManager, jwt_required, create_access_token, get_jwt_identity )
 app = Blueprint('auth', __name__)
 
 @app.route("/auth", methods=['POST'])
