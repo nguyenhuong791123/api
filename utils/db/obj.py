@@ -2,32 +2,35 @@
 from types import MethodType
 
 from ..cm.utils import is_empty, is_type, Obj
-
-class E():
-    MYSQL = 1
-    POSTGRE = 2
-
-class Q():
-    SELECT = 1
-    INSERT = 2
-    UPDATE = 3
-    DELETE = 4
+from .db import E, Q, get_engine
+from .postgre import postgre_select_execute
+from .mysql import mysql_select_execute
 
 class C():
     def __init__(self):
-        self.engine = None
+        self.info = None
+        # self.engine = None
         self.engine_mode = E.MYSQL
         self.method = None
         self.query_mode = None
+        self.query = None
         self.result = None
 
-    def add_engine(self, engine):
-        if engine is not None:
-            self.engine = engine
+    def add_info(self, info):
+        if info is not None:
+            self.info = info
 
-    def add_engine_mode(self, engine, emode):
-        if engine is not None:
-            self.engine = engine
+    # def add_engine(self, engine):
+    #     if engine is not None:
+    #         self.engine = engine
+
+    # def add_engine_mode(self, engine, emode):
+    #     if engine is not None:
+    #         self.engine = engine
+    #     if emode is not None:
+    #         self.engine_mode = emode
+
+    def add_engine_mode(self, emode):
         if emode is not None:
             self.engine_mode = emode
 
@@ -51,9 +54,6 @@ class C():
         self.method = MethodType(call_db_method, self)
 
     def is_check(self):
-        if is_type(self.engine, Obj.QUEUEPOOL) == False:
-            print('Connection engine to DB is required!!!')
-            return False
         if is_type(self.method, Obj.METHOD) == False:
             print('Method is required!!!')
             return False
@@ -63,16 +63,22 @@ def call_db_method(self):
     if self.is_check() == False:
         return self.result
 
-    if self.mode == Q.SELECT:
-        # print('select')
-        self.result = 'select'
-    elif self.mode == Q.INSERT:
+    engine = get_engine(self.info)
+    print(engine.__dict__)
+    if self.query_mode == Q.SELECT:
+        if self.engine_mode == E.POSTGRE:
+            postgre_select_execute(engine, self.query)
+        elif self.engine_mode == E.MYSQL:
+            mysql_select_execute(engine, self.query)
+        else:
+            self.result = None
+    elif self.query_mode == Q.INSERT:
         # print('insert')
         self.result = 'insert'
-    elif self.mode == Q.UPDATE:
+    elif self.query_mode == Q.UPDATE:
         # print('update')
         self.result = 'update'
-    elif self.mode == Q.DELETE:
+    elif self.query_mode == Q.DELETE:
         # print('delete')
         self.result = 'delete'
     else:
@@ -81,9 +87,3 @@ def call_db_method(self):
 
     print(self.__dict__)
     return self.result
-
-# if __name__ == "__main__":
-#     cls = C()
-#     cls.add_fields({ 'a': None, 'b': '1' })
-#     cls.add_db_method_mode(Q.SELECT)
-#     print(cls.method())

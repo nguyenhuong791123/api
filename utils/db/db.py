@@ -1,8 +1,17 @@
 # -*- coding: UTF-8 -*-
 from ..cm.utils import is_exist
-from ..db.obj import E
 from .postgre import *
 from .mysql import *
+
+class E():
+    MYSQL = 1
+    POSTGRE = 2
+
+class Q():
+    SELECT = 1
+    INSERT = 2
+    UPDATE = 3
+    DELETE = 4
 
 class Config():
     def __init__(self, **kwargs):
@@ -49,13 +58,13 @@ def get_engine(auth):
         return None
 
 def get_postgres_engine(auth):
-    conf = Config(host='127.0.0.1', database='scapp', user='scapp', password='postgres080')
-    conf.set_port(5432)
+    conf = Config(host=auth['host'], database=auth['database'], user=auth['user'], password=auth['password'])
+    conf.set_port(auth['port'])
     conn = get_postgres_connection(conf)
     return get_postgres_pool(conn, conf)
 
 def get_mysql_engine(auth):
-    conf = Config(host='127.0.0.1', database='scapp', user='scapp', password='mysql080')
+    conf = Config(host=auth['host'], database=auth['database'], user=auth['user'], password=auth['password'])
     # conf.set_port(3306) # Default Port 3306
     conf.set_pool_name('scapp_pool')
     return get_mysql_pool(conf)

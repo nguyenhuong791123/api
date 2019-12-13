@@ -17,3 +17,6 @@ def get_mysql_pool(conf):
     if is_empty(conf.pool_name):
         return None
     return mysql.connector.pooling.MySQLConnectionPool(pool_name=conf.pool_name, pool_size=conf.pool_size, **conf)
+
+def mysql_select_execute(pool, query):
+    return 'mysql'

@@ -12,4 +12,30 @@ def get_postgres_connection(conf):
     return c
 
 def get_postgres_pool(conn, conf):
-    return pool.QueuePool(conn, max_overflow=conf.max_overflow, pool_size=conf.pool_size)
+    rePool = pool.QueuePool(conn, max_overflow=conf.max_overflow, pool_size=conf.pool_size)
+    if rePool:
+        print("Connection pool created successfully!!!")
+    return rePool
+
+def postgre_select_execute(inPool, query):
+    conn = inPool.connect()
+    if(conn):
+        print("Successfully recived connection from connection pool!!!")
+    print(query)
+    try:
+        cur = conn.cursor()
+        print(query)
+        cur.execute(query)
+        rec = cur.fetchall()
+        for row in rec:
+            print (row)
+
+        cur.close()
+    except Exception as ex:
+        print(ex)
+    except psycopg2.DatabaseError as err:
+        print(err)
+    finally:
+        if (inPool):
+            inPool.closeall
+        print("PostgreSQL connection pool is closed")

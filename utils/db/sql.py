@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 from ..cm.utils import is_exist, is_empty
-from ..db.obj import E, Q, C
-from .db import get_engine
+from ..db.obj import C
+from .db import E, Q
 
 def sql_sel(auth, apikey):
     if is_empty(auth) and is_empty(apikey):
@@ -45,13 +45,11 @@ def load_DB_Class(auth):
         print('Connection engine mode is required!!!')
         return None
 
-    engine = get_engine(auth)
-    if engine is None:
-        print('Connection engine to DB is required!!!')
-        return None
-
     cls = C()
-    cls.add_engine_mode(engine, emode)
+    cls.add_info(auth)
+    cls.add_engine_mode(emode)
+    cls.add_query('select 1')
+    print(cls.__dict__)
     return cls
 
 def get_db_info(auth, apikey):
@@ -61,7 +59,7 @@ def get_db_info(auth, apikey):
     # Username and Password Or API KEY
     # Check In Common Database get Result to [obj]
     result = {}
-    result['host'] = '192.168.10.29'
+    result['host'] = 'sc-p-db'
     result['port'] = 5432
     result['database']='scapp'
     result['user']='postgres'
