@@ -14,6 +14,7 @@ from utils.cm.agent import UserAgent
 from utils.cm.utils import is_empty
 from utils.cm.dates import token_expires
 from utils.db.auth import check_auth
+from utils.db.sql import sql_sel
 
 app = Blueprint('tokenapi', __name__)
 
@@ -22,7 +23,7 @@ def token():
     ag = UserAgent(request)
     if is_empty(ag.api_token) == False:
         return jsonify({ "access_token": ag.api_token }), 200
-
+    print(sql_sel(ag.auth, ag.api_key))
     password = None
     if request.method == 'POST':
         if request.json is not None:

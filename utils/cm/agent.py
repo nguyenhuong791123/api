@@ -108,12 +108,12 @@ class UserAgent():
             return None
 
     def set_api_bearer(self, bearer):
-        if bearer is not None:
+        if bearer is not None and bearer[:5] != 'token' and bearer[:6] != 'Bearer':
             return bearer.replace('Bearer ', '')
 
-    def set_api_token(self, token):
-        if token is not None:
-            self.api_token = token
+    # def set_api_token(self, token):
+    #     if token is not None:
+    #         self.api_token = token
 
     def set_session_user(self):
         obj = {}

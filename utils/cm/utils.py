@@ -42,6 +42,7 @@ def is_json(obj):
 def is_type(obj, istype):
     if obj is None:
         return None
+    print(str(type(obj)))
     objstr = str(type(obj)).replace("<class '", "").replace("'>", "")
     return (objstr == istype)
 
@@ -50,7 +51,9 @@ class Obj():
     INT = 'int'
     LIST = 'list'
     BOOL = 'bool'
+    METHOD = 'method'
     FILESTORAGE = 'werkzeug.datastructures.FileStorage'
+    QUEUEPOOL = 'sqlalchemy.poll.impl.QueuePool'
 
 def convert_file_to_b64_string(fullpath):
     with open(fullpath, "rb") as f:
