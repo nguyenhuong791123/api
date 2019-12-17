@@ -38,9 +38,9 @@ def before_request():
     # global lc
     # lc.append(len(lc) + 1)
     # print(lc)
-    if ag.api_token is None and ag.api_key is None and ag.path not in passpaths:
+    # if ag.api_token is None and ag.api_key is None and ag.path not in passpaths:
     # if ag.api_token is None and ag.api_key is None and ag.path[:4] != '/api' and ag.path not in passpaths:
-        return jsonify({"error": "OAUTH-TOKEN or API-KEY is Required !!!"}), 401
+        # return jsonify({"error": "OAUTH-TOKEN or API-KEY is Required !!!"}), 401
 
 @app.route('/', methods=[ 'GET' ])
 def index():
