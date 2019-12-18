@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 from ..cm.utils import is_exist
-from .postgre import *
-from .mysql import *
+from .engine.postgre import *
+from .engine.mysql import *
 
 class E():
     MYSQL = 1
@@ -18,7 +18,7 @@ class Config():
         self.host = kwargs['host']
         self.port = 3306
         self.database = kwargs['database']
-        self.user = kwargs['user']
+        self.username = kwargs['username']
         self.password = kwargs['password']
         self.max_overflow = 10
         self.pool_size = 5
@@ -45,6 +45,12 @@ class Config():
         if poolname is not None:
             self.pool_name = poolname
 
+    def get_uri(self):
+        if self.port is not None:
+            return 'postgresql://' + self.username + ':' + self.password + '@' + self.host + ':' + str(self.port) + '/' + self.database
+        else:
+            return 'postgresql://' + self.username + ':' + self.password + '@' + self.host + '/' + self.database
+
 def get_engine(auth):
     if is_exist(auth, 'engine_mode') == False:
         return None
@@ -58,13 +64,13 @@ def get_engine(auth):
         return None
 
 def get_postgres_engine(auth):
-    conf = Config(host=auth['host'], database=auth['database'], user=auth['user'], password=auth['password'])
+    conf = Config(host=auth['host'], database=auth['database'], username=auth['username'], password=auth['password'])
     conf.set_port(auth['port'])
     conn = get_postgres_connection(conf)
     return get_postgres_pool(conn, conf)
 
 def get_mysql_engine(auth):
-    conf = Config(host=auth['host'], database=auth['database'], user=auth['user'], password=auth['password'])
+    conf = Config(host=auth['host'], database=auth['database'], username=auth['username'], password=auth['password'])
     # conf.set_port(3306) # Default Port 3306
     conf.set_pool_name('scapp_pool')
     return get_mysql_pool(conf)

@@ -11,6 +11,10 @@ from utils.cm.agent import UserAgent
 from utils.cm.dates import get_datetime
 from utils.cm.utils import random_N_digits
 
+from utils.db.auth.db import db
+# from utils.db.auth.config import Config
+# import utils.db.auth.config
+
 app = Flask(__name__)
 app.secret_key               = random_N_digits(24, False)
 # app.config['JWT_SECRET_KEY'] = random_N_digits(16, False)
@@ -18,7 +22,11 @@ jwt = JWTManager(app)
 
 CORS(app, supports_credentials=True)
 load_apis(app)
-passpaths = [ '/', '/token', '/refresh', '/protected']
+passpaths = [ '/', '/auths', '/token', '/refresh', '/protected']
+
+app.config.from_object('utils.db.auth.config.Config')
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 
 @app.after_request
 def after_request(response):
@@ -38,9 +46,9 @@ def before_request():
     # global lc
     # lc.append(len(lc) + 1)
     # print(lc)
-    if ag.api_token is None and ag.api_key is None and ag.path not in passpaths:
-    # if ag.api_token is None and ag.api_key is None and ag.path[:4] != '/api' and ag.path not in passpaths:
-        return jsonify({"error": "OAUTH-TOKEN or API-KEY is Required !!!"}), 401
+    # if ag.api_token is None and ag.api_key is None and ag.path not in passpaths:
+    # # if ag.api_token is None and ag.api_key is None and ag.path[:4] != '/api' and ag.path not in passpaths:
+    #     return jsonify({"error": "OAUTH-TOKEN or API-KEY is Required !!!"}), 401
 
 @app.route('/', methods=[ 'GET' ])
 def index():

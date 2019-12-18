@@ -61,9 +61,9 @@ def get_db_info(auth, apikey):
     result = {}
     result['host'] = 'sc-p-db'
     result['port'] = 5432
-    result['database']='scapp'
-    result['user']='postgres'
-    result['password']='postgres080' 
+    result['database'] = 'scapp'
+    result['username'] = 'postgres'
+    result['password'] = 'postgres080' 
 
     result['engine_mode'] = E.POSTGRE
 

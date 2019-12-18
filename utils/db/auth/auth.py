@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-from ..cm.utils import is_empty 
+from utils.cm.utils import is_empty 
 
 def check_auth(apikey, username, password):
     if username == 'admin' and password == 'admin':

@@ -13,7 +13,7 @@ from flask_jwt_extended import (
 from utils.cm.agent import UserAgent
 from utils.cm.utils import is_empty
 from utils.cm.dates import token_expires
-from utils.db.auth import check_auth
+from utils.db.auth.auth import check_auth
 from utils.db.sql import sql_sel
 
 app = Blueprint('tokenapi', __name__)

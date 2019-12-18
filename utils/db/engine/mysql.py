@@ -2,7 +2,7 @@
 
 # -*- coding: UTF-8 -*-
 import mysql
-from ..cm.utils import is_empty
+from utils.cm.utils import is_empty 
 
 # def get_mysql_connection(conf):
 #     try:
