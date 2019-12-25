@@ -7,6 +7,7 @@ from pyexcel.cookbook import update_rows
 
 from utils.cm.agent import parse_http_accept_language
 from utils.cm.files import get_dir, delete_dir, make_dir_local, delete_file
+from utils.viewer.excel import set_book_data, sum_row, sum_array
 
 app = Blueprint('excelapi', __name__)
 
@@ -37,22 +38,28 @@ def viewer():
 
     try:
         book = openpyxl.load_workbook(src)
+        # set_book_data(book)
         for sn in book.sheetnames:
             sheet = book[sn]
             rIdx = 0
             maxr = len(list(sheet.rows))
+            sa = []
             for row in sheet.rows:
                 if rIdx >= (maxr - 1):
+                    row[1].value = sum_array(sa)
+                    # row[1].value = sum(sa)
                     break
                 cIdx = 0
                 if rIdx > 0:
                     maxc = len(row)
                     for cell in row:
                         if cIdx >= (maxc - 1):
-                            sumr = [cell.value for cell in row]
-                            del sumr[0]
-                            del sumr[-1]
-                            cell.value = sum(sumr)
+                            cell.value = sum_row(row, 1, (maxc - 1))
+                            # sr = [cell.value for cell in row]
+                            # del sr[0]
+                            # del sr[-1]
+                            # sa.append(sum(sr))
+                            # cell.value = sum(sr)
                             break
                         if cIdx > 0:
                             cell.value = cIdx
