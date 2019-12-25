@@ -46,6 +46,11 @@ def is_type(obj, istype):
     objstr = str(type(obj)).replace("<class '", "").replace("'>", "")
     return (objstr == istype)
 
+def del_number(val):
+    if is_empty(val):
+        return None
+    return ''.join(c if c not in map(str, range(0, 10)) else "" for c in val)
+
 class Obj():
     STR = 'str'
     INT = 'int'

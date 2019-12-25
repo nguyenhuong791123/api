@@ -1,54 +1,23 @@
 # -*- coding: utf-8 -*-
-from ..cm.utils import is_none, is_empty, is_exist
+import openpyxl
 
-def set_book_data(book):
-    if is_none(book) or is_none(book.sheetnames):
-        return
+from ..cm.utils import is_none, is_empty, is_exist, del_number
 
-    for sn in book.sheetnames:
-        sheet = book[sn]
-        rIdx = 0
-        maxr = len(list(sheet.rows))
-        sa = []
-        for row in sheet.rows:
-            print(row)
-            if rIdx >= (maxr - 1):
-                # row[1].value = sum(sa)
-                row[1].value = sum_array(sa)
-                break
-            cIdx = 0
-            if rIdx > 0:
-                maxc = len(row)
-                for cell in row:
-                    if cIdx >= (maxc - 1):
-                        cell.value = sum_row(row, 1, (maxc - 1))
-                        # sr = [cell.value for cell in row]
-                        # del sr[0]
-                        # del sr[-1]
-                        # sa.append(sum(sr))
-                        # cell.value = sum(sr)
-                        break
-                    if cIdx > 0:
-                        cell.value = cIdx
-                    cIdx = cIdx + 1
-                rIdx = rIdx + 1
-    # return book
-
-def sum_row(row, min, max):
+def sum_row(row, cell_value):
     if is_none(row):
         return 0
 
+    efs = E_FS()
+    # efs.double_headers(3)
+    # print(efs.headers)
+    ranges = set_range(efs, cell_value)
+    if ranges is None or len(ranges) <= 0:
+        return None
+
     sr = []
-    l = len(row)
-    idx = 0
-    for cell in row:
-        if idx < min:
-            continue
-        elif idx > max:
-            sr.append(cell.value)
-            break
-        else:
-            sr.append(cell.value)
+    for c in range(len(row)):
+        if c in ranges:
+            sr.append(row[c].value)
 
     return sum(sr)
 
@@ -56,3 +25,55 @@ def sum_array(arr):
     if is_none(arr) or len(arr) <= 0:
         return 0
     return sum(arr)
+
+class E_FS():
+    def __init__(self):
+        self.headers = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        self.sum    = '=SUM('
+        self.sumif  = '=SUMIF('
+        self.sumifs = '=SUMIFS('
+        self.max    = '=MAX('
+        self.maxa   = '=MAXA('
+        self.maxifs = '=MAXIFS('
+        self.min    = '=MIN('
+        self.mina   = '=MINA('
+        self.minifs = '=MINIFS('
+
+    def double_headers(self, level):
+        arr = list(self.headers)
+        for l in range(level):
+            for a in arr:
+                self.headers = self.headers + (arr[l] + a)
+
+def is_variable_exist(cls, fs):
+    if is_empty(fs):
+        return False
+
+    for key, value in cls.__dict__.items():
+        if fs.startswith(value) > -1:
+            return True
+    return False
+
+def set_range(cls, fs):
+    if is_variable_exist(cls, fs) == False or fs.find('(') == -1:
+        return None
+
+    ranges = []
+    arr = fs[(fs.index('(') + 1):(len(fs) - 1)]
+    if arr.index(':') > -1:
+        arr = arr.split(':')
+        min = cls.headers.index(del_number(arr[0]))
+        max = cls.headers.index(del_number(arr[1]))
+        for idx in range(min, max + 1):
+            ranges.append(idx)
+
+    elif arr.index(',') > -1:
+        arr = arr.split(',')
+        for a in arr:
+            idx = cls.headers.index(del_number(a))
+            if idx == -1:
+                continue
+            ranges.append(idx)
+
+    return ranges
+
