@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 import os
 from importlib import import_module
-from flask import make_response
+from flask import make_response, request
 from .utils import is_empty
 from .files import delete_dir
 
@@ -24,6 +24,7 @@ def load_apis(app):
     for file in os.listdir(path):
         if os.path.isfile(path + '/' + file) == False:
             continue
+        
         name = file.split('.')[0]
         if is_empty(name):
             continue
@@ -31,3 +32,14 @@ def load_apis(app):
         if i is None:
             continue
         app.register_blueprint(i.app)
+
+def get_request_auth():
+    auth = {}
+    if request.method == 'POST':
+        if request.json is not None:
+            auth = request.json.get('auth')
+        else:
+            auth['email'] = request.form.get('email')
+            auth['password'] = request.form.get('password')
+
+    return auth

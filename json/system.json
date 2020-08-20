@@ -1,0 +1,10 @@
+{
+    "db":
+    {
+        "host": "p-db"
+        ,"port": 5432
+        ,"username": "postgres"
+        ,"password": "postgres080"
+        ,"database": "smartcrm"
+    }
+}

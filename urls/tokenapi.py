@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 import json
 from flask import Blueprint, session, request, jsonify
+# from flask_cors import cross_origin
 from flask_jwt_extended import (
     JWTManager
     ,create_access_token
@@ -19,11 +20,13 @@ from utils.db.sql import sql_sel
 app = Blueprint('tokenapi', __name__)
 
 @app.route('/token', methods=[ 'GET', 'POST' ])
+# @cross_origin()
 def token():
+    print(request.__dict__)
     ag = UserAgent(request)
+    print(ag.__dict__)
     if is_empty(ag.api_token) == False:
         return jsonify({ "access_token": ag.api_token }), 200
-    print(sql_sel(ag.auth, ag.api_key))
     password = None
     if request.method == 'POST':
         if request.json is not None:
@@ -41,6 +44,7 @@ def token():
     # print(session.get('SessionUser'))
 
     # Set the JWT cookies in the response
+    print(access_token)
     return jsonify({ 'access_token': access_token }), 200
 
 @app.route('/refresh', methods=[ 'POST' ])

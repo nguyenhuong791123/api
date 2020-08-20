@@ -27,8 +27,8 @@ keyring==10.6.0
 keyrings.alt==3.0
 lml==0.0.9
 MarkupSafe==1.1.1
-marshmallow==3.3.0
-marshmallow-sqlalchemy==0.21.0
+marshmallow==3.7.1
+marshmallow-sqlalchemy==0.23.1
 mathparse==0.1.2
 murmurhash==1.0.2
 mysql-connector==2.2.9
@@ -36,11 +36,13 @@ nltk==3.4.5
 numpy==1.17.4
 openpyxl==2.5.14
 paramiko==2.6.0
+passlib==1.7.2
 pdfkit==0.6.1
 Pillow==6.2.1
 Pint==0.9
 plac==0.9.6
 preshed==2.0.1
+psycopg2-binary==2.8.4
 pycparser==2.19
 pycrypto==2.6.1
 pyecharts-jupyter-installer==0.0.3
