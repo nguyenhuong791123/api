@@ -7,6 +7,8 @@ from sqlalchemy.types  import *
 from sqlalchemy.orm import *
 from ..engine.db import Base
 
+from utils.cm.utils import is_exist, is_empty, is_integer
+
 class Ui(Base):
     __table_args__ = { 'schema': 'mente' }
     __tablename__ = 'ui_info'
@@ -21,24 +23,15 @@ class Ui(Base):
         Base.metadata.create_all(self.db.engine)
 
     def __repr__(self):
-        return '<Ui %r>' % self.schema_id
+        return '<Ui %r>' % (self.schema_id)
 
     def __json__(self, o):
         for key in self.__mapper__.columns.keys():
             setattr(self, key, o[key])
 
-    def add(self, ui):
+    def add_all(self, objs):
         try:
-            self.db.session.add(ui)
-            self.db.session.commit()
-        except:
-            self.db.session.rollback()
-            raise
-
-    def add_all(self, uis):
-        print(uis)
-        try:
-            self.db.session.add_all(uis)
+            self.db.session.add_all(objs)
             self.db.session.commit()
         except:
             self.db.session.rollback()

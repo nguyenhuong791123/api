@@ -44,9 +44,16 @@ class Company(Base):
 
     def gets(self):
         return self.db.session.query(Company).all()
+        # if objs is not None:
+        #     for o in objs:
+        #         o.company_basic_password = '******'
+        # return objs
 
     def get(self, id):
         return self.db.session.query(Company).filter(Company.company_id==id).first()
+        # if o is not None:
+        #     o.company_basic_password = '******'
+        # return o
 
     def get_basic(self, id, pw):
         if id is None or pw is None:

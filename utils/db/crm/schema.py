@@ -8,7 +8,7 @@ from sqlalchemy.types  import *
 from sqlalchemy.orm import *
 from ..engine.db import Base
 
-from utils.cm.utils import is_exist, is_empty
+from utils.cm.utils import is_exist, is_empty, is_integer
 
 class Schema(Base):
     __table_args__ = { 'schema': 'mente' }
@@ -28,7 +28,7 @@ class Schema(Base):
         Base.metadata.create_all(self.db.engine)
 
     def __repr__(self):
-        return '<Schema %r>' % self.schema_id
+        return '<Schema %r %r>' % (self.form_id, self.schema_id)
 
     def __json__(self, o, fId):
         for key in self.__mapper__.columns.keys():
@@ -45,7 +45,10 @@ class Schema(Base):
             else:
                 setattr(self, key, o[key])
 
-    def get(self, fId):
+    def get(self, id):
+        return self.db.session.query(Schema).filter(Schema.schema_id==id).first()
+
+    def get_by_form_id(self, fId):
         return self.db.session.query(Schema).filter(Schema.form_id==fId).all()
 
     def add(self, schema):
@@ -59,6 +62,20 @@ class Schema(Base):
     def add_all(self, schemas):
         try:
             self.db.session.add_all(schemas)
+            self.db.session.commit()
+        except:
+            self.db.session.rollback()
+            raise
+
+    def update(self, schema):
+        try:
+            obj = self.get(schema['schema_id'])
+            for key in obj.__mapper__.columns.keys():
+                if is_exist(schema, key) == True or key == 'object_type':
+                    if key == 'object_type':
+                        setattr(obj, key, schema['type'])
+                    else:
+                        setattr(obj, key, schema[key])
             self.db.session.commit()
         except:
             self.db.session.rollback()

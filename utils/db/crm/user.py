@@ -29,6 +29,7 @@ class User(Base):
     user_cti_flag = Column(Integer)
     user_theme = Column(String(15))
     user_memo = Column(String(500))
+    user_default_page_id = Column(Integer)
     user_order = Column(Integer)
     user_view_menu = Column(Integer)
     user_deleted = Column(Integer)
@@ -49,9 +50,23 @@ class User(Base):
     def gets(self, cId):
         return self.db.session.query(User).filter(
             and_(User.group_id==Group.group_id, User.user_deleted==0, Group.company_id==cId)).all()
+        # if objs is not None:
+        #     for o in objs:
+        #         o.user_password = '******'
+        # return objs
+
+    def get_by_group_id(self, gId):
+        return self.db.session.query(User).filter(and_(User.user_deleted==0, User.group_id==gId)).all()
+        # if objs is not None:
+        #     for o in objs:
+        #         o.user_password = '******'
+        # return objs
 
     def get(self, id):
         return self.db.session.query(User).filter(and_(User.user_deleted==0, User.user_id==id)).one()
+        # if o is not None:
+        #     o.user_password = '******'
+        # return u
 
     def get_login(self, uId, uPw):
         result = self.db.session.query(User).filter(
@@ -85,6 +100,7 @@ class UserSchema(SQLAlchemyAutoSchema):
                 'user_memo',
                 'user_name_first',
                 'user_name_last',
+                'user_default_page_id',
                 'user_order',
                 'user_post',
                 'user_theme',

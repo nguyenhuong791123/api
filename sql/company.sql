@@ -173,6 +173,7 @@ CREATE TABLE company.users_info (
   user_theme varchar(15) DEFAULT NULL,
   user_memo varchar(500) DEFAULT NULL,
   user_order INTEGER DEFAULT NULL,
+  user_default_page_id INTEGER DEFAULT NULL,
   user_deleted SMALLINT DEFAULT 0,
   group_id INTEGER NOT NULL DEFAULT 0,
   created_id INTEGER NOT NULL DEFAULT 0,

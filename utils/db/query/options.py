@@ -27,17 +27,24 @@ def getPatitions(cId, language):
     sql = " SELECT json_agg(tbl) AS patitions FROM( "
     sql += " SELECT distinct "
     sql += " oi.option_name, "
-    sql += " pl.object_label::jsonb->>'%s' as object_label " % (language)
+    sql += " pl.object_label::jsonb->>'%s' AS object_label " % (language)
     sql += " FROM mente.option_info oi "
     sql += " INNER JOIN mente.label_info pl ON pl.properties_name=oi.option_name "
-    sql += " WHERE oi.company_id=%d " % (cId)
+    sql += " WHERE oi.company_id=%d AND option_name NOT IN ('sys_api', 'sys_auth', 'user_manager', 'server_type') " % (cId)
+    sql += " UNION "
+    sql += " SELECT "
+    sql += " SUBSTRING(p.page_key, position('.' IN p.page_key) + 1) AS option_name, "
+    sql += " pl.object_label::jsonb->>'%s' AS object_label " % (language)
+    sql += " FROM mente.page_info p "
+    sql += " INNER JOIN mente.label_info pl ON pl.properties_name=p.page_id::varchar "
+    sql += " WHERE p.page_key IN ('company.group_info', 'company.users_info') "
+    sql += " AND p.company_id=%d " % (cId)
     sql += " ) AS tbl "
     return sql
 
 def getOptionPatitions(cId, patitions):
     sql = " SELECT json_agg(tbl) AS patitions FROM( "
     sql += " SELECT "
-    # sql += " SELECT json_build_object( "
     sql += " option_name, "
     sql += " json_agg(json_build_object('value', option_code, 'label', option_value, 'order', option_order)) AS options "
     sql += " FROM mente.option_info "

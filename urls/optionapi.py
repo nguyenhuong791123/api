@@ -81,6 +81,17 @@ def getOptions():
                             else:
                                 result = [groups]
 
+                    if p == 'users_info':
+                        uiconn = OptionPatitions(conn)
+                        uiconn = uiconn.get_option_users(None)
+                        users = OptionPatitionsSchema(many=True).dump(uiconn)
+                        if users:
+                            users = { 'option_name': p, 'options': users[0]['patitions'] }
+                            if result:
+                                result.append(users)
+                            else:
+                                result = [users]
+
             else:
                 result = { 'error': 'Not Server Info!!!'}
 
@@ -177,15 +188,16 @@ def getOptionByPatition():
 
     result = None
     if request.json is not None:
-        cId = request.json['cId']
+        cId = request.json.get('cId', None)
         if cId is None or cId <= 0:
             return jsonify({ 'cId': 'incorrect company id'}), 200
-        uId = request.json['uId']
+        uId = request.json.get('uId', None)
         if uId is None or uId <= 0:
             return jsonify({ 'uId': 'incorrect user id'}), 200
-        patition = request.json['patition']
+        patition = request.json.get('patition', None)
         if patition is None or len(patition) <= 0:
             return jsonify({ 'patition': 'incorrect patition'}), 200
+        gIds = request.json.get('gIds', None)
 
         conn = None
         try:
@@ -195,9 +207,22 @@ def getOptionByPatition():
             if server is not None:
                 server = ServerInfo(many=False).dump(server)
                 conn = DB(get_db_info(server))
-                pconn = Options(conn)
-                pconn = pconn.get_options_by_patition(cId, patition)
-                result = OptionsSchema(many=True).dump(pconn)
+                if patition == 'group_info':
+                    giconn = OptionPatitions(conn)
+                    giconn = giconn.get_option_groups()
+                    result = OptionPatitionsSchema(many=True).dump(giconn)
+                    if result:
+                        result = result[0]['patitions']
+                elif patition == 'users_info':
+                    uiconn = OptionPatitions(conn)
+                    uiconn = uiconn.get_option_users(gIds)
+                    result = OptionPatitionsSchema(many=True).dump(uiconn)
+                    if result:
+                        result = result[0]['patitions']
+                else:
+                    pconn = Options(conn)
+                    pconn = pconn.get_options_by_patition(cId, patition)
+                    result = OptionsSchema(many=True).dump(pconn)
 
             else:
                 result = { 'error': 'Not Server Info!!!'}

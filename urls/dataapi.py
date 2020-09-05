@@ -3,17 +3,43 @@
 from flask import Blueprint, request, jsonify
 
 from utils.cm.resreq import get_request_auth
+from service.data import *
+from utils.cm.utils import *
 
 app = Blueprint('dataapi', __name__)
 
-@app.route('/select', methods=[ 'GET' ])
-def getSelect():
+@app.route('/saveData', methods=[ 'POST' ])
+def saveData():
     auth = get_request_auth()
-    print(request.__dict__)
-    return jsonify(auth), 200
+    result = None
+    if request.json is not None:
+        page = request.json['page']
+        if page is None:
+            return jsonify({ 'error': 'incorrect page info'}), 200
+        cId = request.json['cId']
+        if is_integer(cId) == False:
+            return jsonify({ 'error': 'incorrect company id'}), 200
+        uId = request.json['uId']
+        if is_integer(uId) == False:
+            return jsonify({ 'error': 'incorrect user id'}), 200
 
-@app.route('/insert', methods=[ 'POST' ])
-def getInsert():
+        result = getServiceSaveData(page, cId, uId)
+    return jsonify(result), 200
+
+@app.route('/updateData', methods=[ 'POST' ])
+def updateData():
     auth = get_request_auth()
-    return jsonify({ 'auth': auth }), 200
+    result = None
+    if request.json is not None:
+        page = request.json['page']
+        if page is None:
+            return jsonify({ 'error': 'incorrect page info'}), 200
+        cId = request.json['cId']
+        if is_integer(cId) == False:
+            return jsonify({ 'error': 'incorrect company id'}), 200
+        uId = request.json['uId']
+        if is_integer(uId) == False:
+            return jsonify({ 'error': 'incorrect user id'}), 200
 
+        result = getServiceUpdateData(page, cId, uId)
+    return jsonify(result), 200

@@ -15,13 +15,16 @@ CREATE SEQUENCE mente.page_id_seq;
 CREATE TABLE mente.page_info (
   page_id INTEGER NOT NULL DEFAULT nextval('mente.page_id_seq'::regclass),
   page_name varchar(45) NOT NULL DEFAULT '',
-  page_key varchar(45) NOT NULL DEFAULT '',
+  page_key varchar(50) NOT NULL DEFAULT '',
+  page_id_seq varchar(50) NOT NULL DEFAULT '',
   page_source varchar(255) DEFAULT NULL,
   page_flag SMALLINT DEFAULT 0,
+  page_layout SMALLINT NOT NULL DEFAULT 0,
+  page_open SMALLINT NOT NULL DEFAULT 0,
   page_order INTEGER DEFAULT 0,
   page_auth varchar(200) NOT NULL DEFAULT '{ "search": true, "view": true, "create": true, "edit": true, "upload": true,"download": true }',
   company_id INTEGER NOT NULL DEFAULT 0,
-  page_deleted SMALLINT DEFAULT 0,
+  page_deleted SMALLINT NOT NULL DEFAULT 0,
   updated_id INTEGER DEFAULT NULL,
   updated_time timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_page_id PRIMARY KEY (page_id),
@@ -220,8 +223,8 @@ INSERT INTO mente.option_info(option_name, option_value, option_code, company_id
 INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('age', '90代', 90, 1);
 INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('age', '90以上', 00, 1);
 CREATE TABLE mente.sys_auth PARTITION OF mente.option_info FOR VALUES IN ('sys_auth');
-INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('sys_auth', 'ログイン', 0, 1);
-INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('sys_auth', '顔認証', 1, 1);
+INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('sys_auth', 'ログイン認証', 0, 1);
+-- INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('sys_auth', '顔認証', 1, 1);
 INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('sys_auth', 'QRコード認証', 2, 1);
 INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('sys_auth', 'ワンタイムパスワード', 3, 1);
 CREATE TABLE mente.sys_api PARTITION OF mente.option_info FOR VALUES IN ('sys_api');
@@ -235,9 +238,12 @@ CREATE TABLE mente.server_type PARTITION OF mente.option_info FOR VALUES IN ('se
 INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('server_type', 'データベース', 0, 1);
 INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('server_type', 'メール', 1, 1);
 INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('server_type', 'ファイル', 2, 1);
+CREATE TABLE mente.menus PARTITION OF mente.option_info FOR VALUES IN ('menus');
+INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('menus', 'ナビゲーションバー', 0, 1);
+INSERT INTO mente.option_info(option_name, option_value, option_code, company_id) values ('menus', 'サイドバー', 1, 1);
 
-INSERT INTO mente.label_info(properties_name, object_label) VALUES ('sex', '{"en": "Sex","ja": "Sex","vi": "Sex"}' );
-INSERT INTO mente.label_info(properties_name, object_label) VALUES ('on_off', '{"en": "On/Off","ja": "On/Off","vi": "On/Off"}' );
+INSERT INTO mente.label_info(properties_name, object_label) VALUES ('sex', '{"en": "Sex","ja": "性別","vi": "Sex"}' );
+INSERT INTO mente.label_info(properties_name, object_label) VALUES ('on_off', '{"en": "On/Off","ja": "オン/オフ","vi": "On/Off"}' );
 INSERT INTO mente.label_info(properties_name, object_label) VALUES ('flag', '{"en": "Yes/No","ja": "可/非","vi": "Yes/No"}' );
 INSERT INTO mente.label_info(properties_name, object_label) VALUES ('deleted', '{"en": "Delete","ja": "削除","vi": "Delete"}' );
 INSERT INTO mente.label_info(properties_name, object_label) VALUES ('age', '{"en": "Age","ja": "年齡","vi": "Age"}' );
@@ -245,3 +251,4 @@ INSERT INTO mente.label_info(properties_name, object_label) VALUES ('sys_auth', 
 INSERT INTO mente.label_info(properties_name, object_label) VALUES ('sys_api', '{"en": "Api","ja": "Api","vi": "システムApi"}' );
 INSERT INTO mente.label_info(properties_name, object_label) VALUES ('user_manager', '{"en": "User Auth","ja": "管理権限","vi": "User Auth"}' );
 INSERT INTO mente.label_info(properties_name, object_label) VALUES ('server_type', '{"en": "Server Type","ja": "サーバタイプ","vi": "Server Type"}' );
+INSERT INTO mente.label_info(properties_name, object_label) VALUES ('menus', '{"en": "Menu Mode","ja": "メニューモード","vi": "Menu Mode"}' );

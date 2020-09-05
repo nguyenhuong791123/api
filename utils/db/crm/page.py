@@ -7,18 +7,21 @@ from sqlalchemy import *
 from sqlalchemy.ext.declarative import declared_attr
 from ..engine.db import Base
 
-from utils.cm.utils import is_exist, is_empty
-from ..query.page import getMenuQuery, getPageFields
-from ..query.search import getColums
+from utils.cm.utils import is_exist, is_empty, is_integer
+from ..query.page import getMenuQuery, getPageFields, getCreateTable, getSaveDatas
+from ..query.search import getColums, getDatas
 
 class Page(Base):
     __table_args__ = { 'schema': 'mente' }
     __tablename__ = 'page_info'
 
     page_id = Column(Integer, primary_key=True, autoincrement=True)
-    page_key = Column(String(45))
+    page_key = Column(String(50))
+    page_id_seq = Column(String(50))
     page_flag = Column(Integer)
     page_order = Column(Integer)
+    page_layout = Column(Integer)
+    page_open = Column(Integer)
     page_auth = Column(JSON)
     page_deleted = Column(Integer)
     updated_id = Column(Integer)
@@ -38,7 +41,7 @@ class Page(Base):
             if key in [ 'items', 'form', 'page_name' ]:
                 continue
             elif key == 'page_id':
-                if (is_exist(o, key) == False or is_empty(o[key]) == True):
+                if (is_exist(o, key) == False or is_empty(str(o[key])) == True):
                     id = None
                 else:
                     id = o[key]
@@ -49,7 +52,13 @@ class Page(Base):
                 else:
                     auth = o[key]
                 setattr(self, key, auth)
-            elif is_exist(o, key) == False and key in [ 'page_flag', 'page_deleted' ]:
+            elif key == 'page_id_seq':
+                if (is_exist(o, key) == False or is_empty(o[key]) == True):
+                    seq = None
+                else:
+                    seq = o[key]
+                setattr(self, key, seq)
+            elif is_exist(o, key) == False and key in [ 'page_flag', 'page_deleted', 'page_layout', 'page_open' ]:
                 setattr(self, key, 0)
             elif key == 'company_id':
                 setattr(self, key, cId)
@@ -95,9 +104,10 @@ class Page(Base):
 
     def update(self, page):
         try:
-            p = self.get(page['page_id'])
-            for key, value in page.items():
-                setattr(p, key, value)
+            obj = self.get(page['page_id'])
+            for key in obj.__mapper__.columns.keys():
+                if is_exist(page, key) == True:
+                    setattr(obj, key, page[key])
             self.db.session.commit()
         except:
             self.db.session.rollback()
@@ -132,6 +142,28 @@ class Page(Base):
             self.db.session.rollback()
             raise
 
+    def create_table(self, page):
+        try:
+            print(getCreateTable(page))
+            self.db.session.execute(text(getCreateTable(page)))
+            self.db.session.commit()
+        except:
+            self.db.session.rollback()
+            raise
+
+    def get_datas(self, schema, columns, idSeq, where, reference):
+        return self.db.session.execute(text(getDatas(schema, columns, idSeq, where, reference))).fetchall()
+
+    def save_datas(self, page, cId, uId):
+        try:
+            obj = self.db.session.execute(text(getSaveDatas(page, cId, uId))).fetchone()
+            self.db.session.commit()
+            return obj
+        except:
+            self.db.session.rollback()
+            raise
+        return None
+
 class PageMenu(Page):
     @declared_attr
     def items(cls):
@@ -153,8 +185,10 @@ class PageForm(PageMenu):
         return Column(JSON([]))
 
     def get_form_fields(self, cId, pId, language):
-        return self.db.session.query(PageForm).from_statement(text(getPageFields())).params(cId=cId, pId=pId, language=language).first()
+        return self.db.session.query(PageForm).from_statement(text(getPageFields(False))).params(cId=cId, pId=pId, language=language).first()
 
+    def get_edit_form_fields(self, cId, pId, language):
+        return self.db.session.query(PageForm).from_statement(text(getPageFields(True))).params(cId=cId, pId=pId, language=language).first()
 
 class PageMenuSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -164,6 +198,7 @@ class PageMenuSchema(SQLAlchemyAutoSchema):
             'page_id',
             'page_name',
             'page_key',
+            'page_open',
             'page_flag',
             'page_auth',
             'page_order',
@@ -178,9 +213,25 @@ class PageFormSchema(SQLAlchemyAutoSchema):
             'page_id',
             'page_name',
             'page_key',
+            'page_id_seq',
+            'page_layout',
+            'page_open',
             'page_auth',
             'form',
         )
+
+# class PageEditFormSchema(SQLAlchemyAutoSchema):
+#     class Meta:
+#         model = Page
+#         load_instance = True
+#         fields = (
+#             'page_id',
+#             'page_name',
+#             'page_key',
+#             'page_auth',
+#             'obj',
+#             'form',
+#         )
 
 class PageSchema(SQLAlchemyAutoSchema):
     class Meta:

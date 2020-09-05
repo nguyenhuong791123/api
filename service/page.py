@@ -28,6 +28,11 @@ def setServicePage(page, cId, uId):
     uiconn = None
     dconn = None
     result = None
+    pl = None
+    pls = None
+    eos = None
+    ul = None
+    dl = None
     try:
         conn = DB(get_common_db_info())
         conn = Server(conn)
@@ -36,71 +41,129 @@ def setServicePage(page, cId, uId):
             server = ServerInfo(many=False).dump(server)
             uconn = DB(get_db_info(server))
             pconn = Page(uconn)
-            page['page_order'] = pconn.get_max_order_by()
-            pconn.__json__(page, cId, uId)
-            pconn.add(pconn)
-            result = PageMenuSchema(many=False).dump(pconn)
-            result['items'] = []
+            # print(page)
+            if is_integer(page['page_id']) == True:
+                pconn.update(page)
+                result = page
+                pdplsconn = Label(uconn)
+                pdplsconn.delete_page_id(page['page_id'])
+            else:
+                page['page_order'] = pconn.get_max_order_by()
+                pconn.__json__(page, cId, uId)
+                pconn.add(pconn)
+                result = PageMenuSchema(many=False).dump(pconn)
+                result['items'] = []
+                pk = result['page_key'] + '_' + '{0:07}'.format(result['page_id'])
+                result['page_key'] = pk
+                result['page_id_seq'] = 'seq_id_' + pk.replace('customize.table_', '')
+                pconn.update(result)
 
-            pl = []
+            ul = []
+            dl = []
+            pls = []
             plsconn = Label(uconn)
             pln = {}
+            pln['schema_id'] = result['page_id']
             pln['properties_name'] = str(result['page_id'])
             pln['object_label'] = { 'ja': page['page_name'] }
             plsconn.__json__(pln)
-            pl.append(plsconn)
+            pls.append(plsconn)
 
+            addIdSeq = True
             forms = page['form']
             for f in forms:
                 fconn = Form(uconn)
-                fconn.__json__(f, result['page_id'])
-                fconn.add(fconn)
-                form = FormSchema(many=False).dump(fconn)
+                if is_exist(f, 'form_id') == True and is_integer(f['form_id']) == True:
+                    form = f
+                    fconn.update(form)
+                else:
+                    fconn.__json__(f, result['page_id'])
+                    fconn.add(fconn)
+                    form = FormSchema(many=False).dump(fconn)
 
                 schema = []
                 if isinstance(f['object'], list):
                     for obj in f['object']:
-                        fc = copy.copy(f)
-                        fc['object'] = {}
+                        fc = {}
                         fc['object'] = obj
                         schema.append(fc)
                 else:
                     schema.append(f)
 
-                for obj in schema:
-                    if is_exist(obj['object'], 'schema') == False:
+                # print(schema)
+                pl = []
+                os = []
+                pts = []
+                eos = []
+                for sc in schema:
+                    if is_exist(sc['object'], 'schema') == False:
                         continue
 
                     sconn = Schema(uconn)
-                    sconn.__json__(obj['object']['schema'], form['form_id'])
-                    sconn.add(sconn)
-                    s = SchemaSchema(many=False).dump(sconn)
-                    if s['schema_id'] is not None and obj['object'] is not None:
-                        if is_exist(obj['object'], 'schema') == True and is_exist(obj['object']['schema'], 'obj') == True:
-                            eos = []
+                    objschema = sc['object']['schema']
+                    if is_exist(objschema, 'schema_id') == True and is_integer(objschema['schema_id']) == True:
+                        s = objschema
+                        sconn.update(s)
+                    else:
+                        sconn.__json__(objschema, form['form_id'])
+                        sconn.add(sconn)
+                        s = SchemaSchema(many=False).dump(sconn)
+
+                    if is_integer(page['page_id']) == False and addIdSeq == True:
+                        psconn = Properties(uconn)
+                        p = {}
+                        p['schema_id'] = s['schema_id']
+                        p['properties_name'] = 'number_' + result['page_id_seq']
+                        idseq = {}
+                        idseq['idx'] = 0
+                        idseq['type'] = 'number'
+                        idseq['auth'] = {}
+                        idseq['auth']['edit'] = False
+                        idseq['auth']['view'] = False
+                        idseq['auth']['create'] = False
+                        idseq['auth']['search'] = True
+                        p['value'] = idseq
+                        psconn.__json__(p)
+                        pl.append(psconn)
+                        plsconn = Label(uconn)
+                        pln = {}
+                        pln['schema_id'] = s['schema_id']
+                        pln['properties_name'] = 'number_' + result['page_id_seq']
+                        pln['object_label'] = { 'en': 'ID', 'ja': 'ID', 'vi':'ID' }
+                        plsconn.__json__(pln)
+                        pls.append(plsconn)
+                        uiconn = Ui(uconn)
+                        u = {}
+                        u['schema_id'] = s['schema_id']
+                        u['properties_name'] = 'number_' + result['page_id_seq']
+                        u['value'] = { 'ui:widget': 'hidden' }
+                        uiconn.__json__(u)
+                        ul.append(uiconn)
+                    addIdSeq = False
+
+                    if s['schema_id'] is not None and sc['object'] is not None:
+                        if is_exist(objschema, 'obj') == True:
                             eoconn = EditObject(uconn)
                             eo = {}
                             eo['properties_name'] = s['schema_key']
                             eo['schema_id'] = s['schema_id']
                             eo['edit_type'] = 1
-                            eo['value'] = obj['object']['schema']['obj']
+                            eo['value'] = objschema['obj']
                             eoconn.__json__(eo)
                             eos.append(eoconn)
 
-                            if is_exist(obj['object']['schema']['obj'], 'label') == True:
+                            if is_exist(objschema['obj'], 'label') == True:
                                 plsconn = Label(uconn) 
                                 pln = {}
+                                pln['schema_id'] = s['schema_id']
                                 pln['properties_name'] = s['schema_key']
-                                pln['object_label'] = obj['object']['schema']['obj']['label']
+                                pln['object_label'] = objschema['obj']['label']
                                 plsconn.__json__(pln)
-                                pl.append(plsconn)
+                                pls.append(plsconn)
 
-                        pls = []
-                        pts = []
-                        os = []
                         psconn = Properties(uconn)
                         plsconn = Label(uconn)
-                        pp = obj['object']['schema']['properties']
+                        pp = objschema['properties']
                         for key in pp.keys():
                             if is_exist(pp[key], 'options') == True:
                                 if is_exist(pp[key], 'option_target') == False or is_empty(pp[key]['option_target']) == True:
@@ -129,13 +192,14 @@ def setServicePage(page, cId, uId):
                             psconn.__json__(p)
                             pl.append(psconn)
 
-                            if is_exist(pp[key], 'obj') == True:
-                                plsconn = Label(uconn) 
+                            if is_exist(pp[key], 'obj') == True and is_exist(pp[key]['obj'], 'label'):
+                                plsconn = Label(uconn)
                                 pln = {}
+                                pln['schema_id'] = s['schema_id']
                                 pln['properties_name'] = key
                                 pln['object_label'] = pp[key]['obj']['label']
                                 plsconn.__json__(pln)
-                                pl.append(plsconn)
+                                pls.append(plsconn)
 
                                 eoconn = EditObject(uconn)
                                 eo = {}
@@ -145,20 +209,18 @@ def setServicePage(page, cId, uId):
                                 eo['value'] = pp[key]['obj']
                                 eoconn.__json__(eo)
                                 eos.append(eoconn)
+                            if is_integer(page['page_id']) == True and key.find('_seq_id_') > 0:
+                                plsconn = Label(uconn)
+                                pln = {}
+                                pln['schema_id'] = s['schema_id']
+                                pln['properties_name'] = key
+                                pln['object_label'] = { 'en': 'ID', 'ja': 'ID', 'vi':'ID' }
+                                plsconn.__json__(pln)
+                                pls.append(plsconn)
 
-                            if pl:
-                                psconn.add_all(pl)
-                            if pls:
-                                plsconn.add_all(pls)
-                            if eos:
-                                eoconn.add_all(eos)
-                            if os:
-                                osccon.add_all(os)
-
-                        if is_exist(obj['object'], 'ui') == True:
-                            ul = []
+                        if is_exist(sc['object'], 'ui') == True:
                             uiconn = Ui(uconn)
-                            ui = obj['object']['ui']
+                            ui = sc['object']['ui']
                             for key in ui.keys():
                                 uiconn = Ui(uconn)
                                 u = {}
@@ -167,13 +229,10 @@ def setServicePage(page, cId, uId):
                                 u['value'] = ui[key]
                                 uiconn.__json__(u)
                                 ul.append(uiconn)
-                            if ul:
-                                uiconn.add_all(ul)
 
-                        if is_exist(obj['object'], 'data') == True:
-                            dl = []
+                        if is_exist(sc['object'], 'data') == True:
                             dconn = DefaultData(uconn)
-                            dt = obj['object']['data']
+                            dt = sc['object']['data']
                             for key in dt.keys():
                                 dconn = DefaultData(uconn)
                                 d = {}
@@ -182,31 +241,72 @@ def setServicePage(page, cId, uId):
                                 d['value'] = dt[key]
                                 dconn.__json__(d)
                                 dl.append(dconn)
-                            if dl:
-                                dconn.add_all(dl)
 
+                        if pl:
+                            dpsconn = Properties(uconn)
+                            dpsconn.delete(s['schema_id'])
+                        if pls:
+                            dplsconn = Label(uconn)
+                            dplsconn.delete(s['schema_id'])
+                        if eos:
+                            deoconn = EditObject(uconn)
+                            deoconn.delete(s['schema_id'])
+                        if os:
+                            osccon.add_all(os)
+                        if ul:
+                            duiconn = Ui(uconn)
+                            duiconn.delete(s['schema_id'])
+                        if dl:
+                            ddconn = DefaultData(uconn)
+                            ddconn.delete(s['schema_id'])
+
+                if pl:
+                    psconn.add_all(pl)
+                if pls:
+                    plsconn.add_all(pls)
+                if eos:
+                    eoconn.add_all(eos)
+                if ul:
+                    uiconn.add_all(ul)
+                if dl:
+                    dconn.add_all(dl)
+
+            page['page_key'] = result['page_key']
+            if is_integer(page['page_id']) == False:
+                pconn.create_table(page)
         else:
             result = { 'error': 'Not Server Info!!!'}
     except Exception as ex:
-        if osccon is not None and pts:
-            for pt in pts:
-                osccon.drop_patition(pt)
-        if uiconn is not None and is_exist(s, 'schema_id') == True:
-            uiconn.delete(s['schema_id'])
-        if dconn is not None and is_exist(s, 'schema_id') == True:
-            dconn.delete(s['schema_id'])
-        if psconn is not None and is_exist(s, 'schema_id') == True:
-            psconn.delete(s['schema_id'])
-        if eoconn is not None and is_exist(s, 'schema_id') == True:
-            eoconn.delete(s['schema_id'])
-        if sconn is not None and is_exist(form, 'form_id') == True:
-            sconn.delete(form['form_id'])
-        if fconn is not None and is_exist(result, 'page_id') == True:
-            fconn.delete(result['page_id'])
-        if lconn is not None and is_exist(result, 'page_id') == True:
-            lconn.delete(result['page_id'], 1)
-        if pconn is not None and is_exist(result, 'page_id') == True:
-            pconn.delete(result['page_id'])
+        if is_integer(page['page_id']) == False:
+            if pl:
+                psconn.delete(s['schema_id'])
+            if pls:
+                plsconn.delete_in_properties_name([d.properties_name for d in pls])
+            if eos:
+                eoconn.delete(s['schema_id'])
+            if ul:
+                uiconn.delete(s['schema_id'])
+            if dl:
+                dconn.delete(s['schema_id'])
+            if osccon is not None and pts:
+                for pt in pts:
+                    osccon.drop_patition(pt)
+            if uiconn is not None and is_exist(s, 'schema_id') == True:
+                uiconn.delete(s['schema_id'])
+            if dconn is not None and is_exist(s, 'schema_id') == True:
+                dconn.delete(s['schema_id'])
+            if psconn is not None and is_exist(s, 'schema_id') == True:
+                psconn.delete(s['schema_id'])
+            if eoconn is not None and is_exist(s, 'schema_id') == True:
+                eoconn.delete(s['schema_id'])
+            if sconn is not None and is_exist(form, 'form_id') == True:
+                sconn.delete(form['form_id'])
+            if fconn is not None and is_exist(result, 'page_id') == True:
+                fconn.delete(result['page_id'])
+            if lconn is not None and is_exist(result, 'page_id') == True:
+                lconn.delete(result['page_id'], 1)
+            if pconn is not None and is_exist(result, 'page_id') == True:
+                pconn.delete(result['page_id'])
 
         result = { 'error': str(ex) }
     finally:
@@ -215,7 +315,7 @@ def setServicePage(page, cId, uId):
 
     return result
 
-def getServicePage(cId, pId, language):
+def getServicePage(cId, pId, language, edit):
     conn = None
     result = None
     try:
@@ -226,14 +326,25 @@ def getServicePage(cId, pId, language):
             server = ServerInfo(many=False).dump(server)
             conn = DB(get_db_info(server))
             pconn = PageForm(conn)
-            page = pconn.get_form_fields(cId, pId, language)
+            print(pconn)
+            if edit == True:
+                page = pconn.get_edit_form_fields(cId, pId, language)
+            else:
+                page = pconn.get_form_fields(cId, pId, language)
             result = PageFormSchema(many=False).dump(page)
 
+            print(edit)
+            print(result)
             forms = result['form']
             for f in forms:
                 if f['object_type'] == 'div':
                     obj = copy.copy(f['object'][0])
                     f['object'] = obj
+                elif f['object_type'] == 'tab' and isinstance(f['object'], list):
+                    for o in f['object']:
+                        o['schema']['tab_name'] = copy.copy(o['schema']['title'])
+                        del o['schema']['title']
+            # print(result)
         else:
             result = { 'error': 'Not Server Info!!!'}
     except Exception as ex:
@@ -258,6 +369,8 @@ def setServiceGroupPage(page, cId, uId):
             server = ServerInfo(many=False).dump(server)
             conn = DB(get_db_info(server))
             pconn = Page(conn)
+            #page['page_layout'] = 0
+            #page['page_open'] = 0
             pconn.__json__(page, cId, uId)
             pconn.add(pconn)
             result = PageMenuSchema(many=False).dump(pconn)
@@ -265,6 +378,7 @@ def setServiceGroupPage(page, cId, uId):
 
             plsconn = Label(conn)
             pln = {}
+            pln['schema_id'] = result['page_id']
             pln['properties_name'] = str(result['page_id'])
             pln['object_label'] = { 'ja': page['page_name'] }
             plsconn.__json__(pln)
@@ -368,28 +482,44 @@ def deleteServicePage(page, cId):
         if server is not None:
             server = ServerInfo(many=False).dump(server)
             conn = DB(get_db_info(server))
-            if is_empty(page['page_key']) == False and page['page_key'].startswith('table_'):
-                sconn = Schema(conn)
-                ss = sconn.get(page['page_id'])
-                for s in ss:
-                    psconn = Properties(conn)
-                    psconn.delete(s.schema_id)
-                    uiconn = Ui(conn)
-                    uiconn.delete(s.schema_id)
-                    dconn = DefaultData(conn)
-                    dconn.delete(s.schema_id)
-                sconn.delete(page['page_id'])
+            ls = []
+            if is_empty(page['page_key']) == False and page['page_key'].startswith('customize.table_') == True:
+                ls.append(str(page['page_id']))
+                fconn = Form(conn)
+                fs = fconn.get_by_page_id(page['page_id'])
+                if fs is not None:
+                    for f in fs:
+                        sconn = Schema(conn)
+                        ss = sconn.get_by_form_id(f.form_id)
+                        if ss is not None:
+                            for s in ss:
+                                ls.append(s.schema_key)
+                                psconn = Properties(conn)
+                                ps = psconn.get_by_schema_id(s.schema_id)
+                                for p in ps:
+                                    ls.append(p.properties_name)
+                                psconn.delete(s.schema_id)
+                                uiconn = Ui(conn)
+                                uiconn.delete(s.schema_id)
+                                dconn = DefaultData(conn)
+                                dconn.delete(s.schema_id)
+                                eoconn = EditObject(conn)
+                                eoconn.delete(s.schema_id)
+                        sconn.delete(f.form_id)
+                    plconn = Label(conn)
+                    plconn.delete_in_properties_name(ls)
+                    fconn.delete(page['page_id'])
 
-            pconn = Page(conn)
-            prconn = PageRel(conn)
-            pIds = prconn.gets(page['page_id'])
-            if page['page_auth'] is None and is_empty(pIds) == False:
-                order = pconn.get_max_order_by()[0]
-                for idx in range(len(pIds)):
-                    pr = PageRelSchema(many=False).dump(pIds[idx])
-                    pconn.update({ 'page_id': pr['page_id'], 'page_order': (order + idx) })
-                prconn.delete(page['page_id'], True)
-            pconn.delete(page['page_id'])
+                pconn = Page(conn)
+                prconn = PageRel(conn)
+                pIds = prconn.gets(page['page_id'])
+                if page['page_auth'] is None and is_empty(pIds) == False:
+                    order = pconn.get_max_order_by()[0]
+                    for idx in range(len(pIds)):
+                        pr = PageRelSchema(many=False).dump(pIds[idx])
+                        pconn.update({ 'page_id': pr['page_id'], 'page_order': (order + idx) })
+                    prconn.delete(page['page_id'], True)
+                pconn.delete(page['page_id'])
 
             sconn = PageMenu(conn, 'items')
             menu = sconn.get_menus(cId, 'ja')
