@@ -75,10 +75,6 @@ def getCreateTable(page):
                 fc = {}
                 fc['object'] = obj
                 schema.append(fc)
-                # fc = copy.copy(f)
-                # fc['object'] = {}
-                # fc['object'] = obj
-                # schema.append(fc)
         else:
             schema.append(f)
         # print(schema)
@@ -89,71 +85,135 @@ def getCreateTable(page):
                 required = 'NULL'
                 if is_exist(kp[key]['obj'], 'required') == True and kp[key]['obj']['required'] == True:
                     required = 'NOT NULL'
-                if ct in [ 'number', 'checkbox', 'radio', 'select' ]:
-                    sql += " %s INTEGER %s DEFAULT 0, " % (key, required)
+                if ct in [ 'integer', 'checkbox', 'radio', 'select' ]:
+                    if required == 'NULL':
+                        sql += " %s INTEGER %s, " % (key, required)
+                    else:
+                        sql += " %s INTEGER %s DEFAULT 0, " % (key, required)
+                elif ct in [ 'image', 'file' ]:
+                    if required == 'NULL':
+                        sql += " %s JSON %s, " % (key, required)
+                    else:
+                        sql += " %s JSON %s DEFAULT '{}', " % (key, required)
+                elif ct == 'number':
+                    if required == 'NULL':
+                        sql += " %s DECIMAL(20, 3) %s, " % (key, required)
+                    else:
+                        sql += " %s DECIMAL(20, 3) %s DEFAULT 0, " % (key, required)
                 elif ct == 'datetime':
-                    sql += " %s TIMESTAMP %s DEFAULT CURRENT_TIMESTAMP, " % (key, required)
-                elif ct == 'date':
-                    sql += " %s DATE %s DEFAULT DATE(TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')), " % (key, required)
+                    if required == 'NULL':
+                        sql += " %s TIMESTAMP %s, " % (key, required)
+                    else:
+                        sql += " %s TIMESTAMP %s DEFAULT CURRENT_TIMESTAMP, " % (key, required)
+                elif ct == 'date' or ct == 'month':
+                    if required == 'NULL':
+                        sql += " %s DATE %s, " % (key, required)
+                    else:
+                        if ct == 'month':
+                            sql += " %s DATE %s DEFAULT DATE(TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMM')), " % (key, required)
+                        else:
+                            sql += " %s DATE %s DEFAULT DATE(TO_CHAR(CURRENT_TIMESTAMP, 'YYYYMMDD')), " % (key, required)
                 else:
                     length = 50
                     if ct == 'textarea':
                         length = 500
                     if is_exist(kp[key]['obj'], 'max_length') == True:
                         length = kp[key]['obj']['max_length']
-                    sql += " %s VARCHAR(%d) %s DEFAULT '', " % (key, length, required)
+                    if required == 'NULL':
+                        sql += " %s VARCHAR(%d) %s, " % (key, length, required)
+                    else:
+                        sql += " %s VARCHAR(%d) %s DEFAULT '', " % (key, length, required)
+
+    field = 'integer_' + tbl.replace('customize.table_', '') + '_created_id'
+    sql += " %s INTEGER NOT NULL DEFAULT 0, " % (field)
+    field = 'datetime_' + tbl.replace('customize.table_', '') + '_created_time'
+    sql += " %s TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, " % (field)
+    field = 'integer_' + tbl.replace('customize.table_', '') + '_updated_id'
+    sql += " %s INTEGER NULL DEFAULT 0, " % (field)
+    field = 'datetime_' + tbl.replace('customize.table_', '') + '_updated_time'
+    sql += " %s TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP, " % (field)
     sql += " CONSTRAINT pk_%s PRIMARY KEY (%s) " % (colId, colId)
     sql += " ); "
+    print(sql)
 
     return sql
 
-def getSaveDatas(page, cId, uId):
-    if is_exist(page, 'page_key') == False:
-        return None
+def getProperties(key, sId):
+    p = {}
+    p['schema_id'] = sId
+    p['properties_name'] = key
+    idseq = {}
+    idseq['idx'] = 0
+    idseq['type'] = 'number'
+    idseq['auth'] = {}
+    idseq['auth']['edit'] = False
+    idseq['auth']['view'] = False
+    idseq['auth']['create'] = False
+    idseq['auth']['search'] = True
+    p['value'] = idseq
+    return p
 
-    tbl = page['page_key']
-    idSeq = page['page_id_seq']
-    fs = page['form']
-    tbls = [ 'company.company_info', 'company.group_info', 'company.users_info', 'mente.page_info', 'system.api_info', 'system.server_info' ]
-    fix = False
-    if tbl in tbls:
-        istbl = tbl[(tbl.find('.')+1):]
-        fIdx = idSeq.find(tbl.split('.')[1]) + (len(tbl.split('.')[1]) + 1)
-        idSeq = idSeq[fIdx:]
-        fix = True
-    for f in fs:
-        schema = []
-        if isinstance(f['object'], list):
-            for obj in f['object']:
-                fc = {}
-                fc['object'] = obj
-                schema.append(fc)
-        else:
-            schema.append(f)
+def getUis(key, sId, value):
+    u = {}
+    u['schema_id'] = sId
+    u['properties_name'] = key
+    u['value'] = value
+    return u
 
-        cols = ""
-        vals = ""
-        for s in schema:
-            kp = s['object']['schema']['properties']
-            data = s['object']['data']
-            for key, value in kp.items():
-                if is_exist(data, key) and key.find(istbl) != -1:
-                    ct = key[0:key.find('_')]
-                    col = key
-                    if fix:
-                        fIdx = col.find(tbl.split('.')[1]) + (len(tbl.split('.')[1]) + 1)
-                        col = key[fIdx:]
-                    cols += " %s," % (col)
-                    if ct in [ 'number', 'select', 'checkbox', 'radio' ]:
-                        vals += " %s," % (data[key])
-                    else:
-                        vals += " '%s'," % (data[key])
-    if cols.endswith(','):
-        cols = cols[0:len(cols)-1]
-    if vals.endswith(','):
-        vals = vals[0:len(vals)-1]
-    # print(cols)
-    # print(vals)
-    sql = " INSERT INTO %s(%s) VALUES(%s) RETURNING %s; " % (tbl, cols, vals, idSeq)
-    print(sql)
-    return " INSERT INTO %s(%s) VALUES(%s) RETURNING %s; " % (tbl, cols, vals, idSeq)
+def getLabels(key, sId, label):
+    pln = {}
+    pln['schema_id'] = sId
+    pln['properties_name'] = key
+    pln['object_label'] = label
+    return pln
+
+# def getSaveDatas(page, cId, uId):
+#     if is_exist(page, 'page_key') == False:
+#         return None
+
+#     tbl = page['page_key']
+#     idSeq = page['page_id_seq']
+#     fs = page['form']
+#     tbls = [ 'company.company_info', 'company.group_info', 'company.users_info', 'mente.page_info', 'system.api_info', 'system.server_info' ]
+#     fix = False
+#     if tbl in tbls:
+#         istbl = tbl[(tbl.find('.')+1):]
+#         fIdx = idSeq.find(tbl.split('.')[1]) + (len(tbl.split('.')[1]) + 1)
+#         idSeq = idSeq[fIdx:]
+#         fix = True
+#     for f in fs:
+#         schema = []
+#         if isinstance(f['object'], list):
+#             for obj in f['object']:
+#                 fc = {}
+#                 fc['object'] = obj
+#                 schema.append(fc)
+#         else:
+#             schema.append(f)
+
+#         cols = ""
+#         vals = ""
+#         for s in schema:
+#             kp = s['object']['schema']['properties']
+#             data = s['object']['data']
+#             for key, value in kp.items():
+#                 if is_exist(data, key) and key.find(istbl) != -1:
+#                     ct = key[0:key.find('_')]
+#                     col = key
+#                     if fix:
+#                         fIdx = col.find(tbl.split('.')[1]) + (len(tbl.split('.')[1]) + 1)
+#                         col = key[fIdx:]
+#                     cols += " %s," % (col)
+#                     if ct in [ 'number', 'select', 'checkbox', 'radio' ]:
+#                         vals += " %s," % (data[key])
+#                     else:
+#                         vals += " '%s'," % (data[key])
+#     if cols.endswith(','):
+#         cols = cols[0:len(cols)-1]
+#     if vals.endswith(','):
+#         vals = vals[0:len(vals)-1]
+#     # print(cols)
+#     # print(vals)
+#     sql = " INSERT INTO %s(%s) VALUES(%s) RETURNING %s; " % (tbl, cols, vals, idSeq)
+#     print(sql)
+#     return " INSERT INTO %s(%s) VALUES(%s) RETURNING %s; " % (tbl, cols, vals, idSeq)

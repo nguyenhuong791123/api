@@ -2,7 +2,6 @@ CREATE SCHEMA system;
 CREATE SCHEMA company;
 CREATE SCHEMA mente;
 
-
 CREATE EXTENSION pgcrypto;
 DROP TABLE IF EXISTS system.company_api_rel;
 DROP SEQUENCE IF EXISTS system.api_id_seq CASCADE;
@@ -39,8 +38,10 @@ CREATE TABLE company.company_info (
   company_use_api SMALLINT DEFAULT 0,
   company_start_use_date DATE NULL,
   company_deleted SMALLINT DEFAULT 0,
+  created_id INTEGER NOT NULL DEFAULT 0,
+  created_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   updated_id INTEGER DEFAULT NULL,
-  updated_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_company_id PRIMARY KEY (company_id),
   CONSTRAINT un_company_basic_login_id UNIQUE (company_basic_login_id)
 );
@@ -93,8 +94,8 @@ CREATE TABLE company.group_info (
   group_memo varchar(500) DEFAULT NULL,
   group_deleted SMALLINT DEFAULT 0,
   company_id INTEGER NOT NULL DEFAULT 0,
-  -- created_id INTEGER DEFAULT NULL COMMENT '作成者',
-  -- created_time timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '作成日',
+  created_id INTEGER NOT NULL DEFAULT 0,
+  created_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   updated_id INTEGER DEFAULT NULL,
   updated_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_group_id PRIMARY KEY (group_id),
@@ -130,6 +131,10 @@ CREATE TABLE system.api_info (
   api_expiration_date TIMESTAMP,
   api_deleted SMALLINT DEFAULT 1,
   company_id INT NOT NULL DEFAULT 0,
+  created_id INTEGER NOT NULL DEFAULT 0,
+  created_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_id INTEGER DEFAULT NULL,
+  updated_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_api_id PRIMARY KEY (api_id),
   -- CONSTRAINT un_api_key UNIQUE (api_key),
   CONSTRAINT fk_api_info_api_id FOREIGN KEY (company_id) REFERENCES company.company_info(company_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
@@ -215,6 +220,10 @@ CREATE TABLE system.server_info (
   username varchar(15) NOT NULL,
   password varchar(70) NOT NULL,
   company_id INTEGER NOT NULL DEFAULT 0,
+  created_id INTEGER NOT NULL DEFAULT 0,
+  created_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_id INTEGER DEFAULT NULL,
+  updated_time TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT pk_server_server_id PRIMARY KEY (server_id),
   CONSTRAINT fk_server_info_company_id FOREIGN KEY (company_id) REFERENCES company.company_info(company_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
 );

@@ -16,7 +16,7 @@ class Company(Base):
     company_city = Column(Integer)
     company_address = Column(String(150))
     company_address_kana = Column(String(200))
-    company_logo = Column(Text)
+    company_logo = Column(JSON)
     company_home_page = Column(String(150))
     company_copy_right = Column(String(150))
     company_global_ip = Column(String(120))

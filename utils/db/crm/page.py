@@ -8,7 +8,8 @@ from sqlalchemy.ext.declarative import declared_attr
 from ..engine.db import Base
 
 from utils.cm.utils import is_exist, is_empty, is_integer
-from ..query.page import getMenuQuery, getPageFields, getCreateTable, getSaveDatas
+from ..query.page import getMenuQuery, getPageFields, getCreateTable
+from ..query.data import getSaveDatas, getUpdateDatas, getSaveCustomizeDatas, getUpdateCustomizeDatas, getDeleteFieldDatas
 from ..query.search import getColums, getDatas
 
 class Page(Base):
@@ -163,6 +164,53 @@ class Page(Base):
             self.db.session.rollback()
             raise
         return None
+
+    def save_customize_datas(self, pId, rId, fields):
+        try:
+            for key, value in fields.items():
+                self.db.session.execute(text(getSaveCustomizeDatas(pId, rId, key, value)))
+            self.db.session.commit()
+        except:
+            self.db.session.rollback()
+            raise
+        return None
+
+    def update_datas(self, page, cId, uId, rId):
+        try:
+            query = getUpdateDatas(page, cId, uId, rId)
+            if query is not None:
+                self.db.session.execute(text(query))
+                self.db.session.commit()
+            return [rId]
+        except:
+            self.db.session.rollback()
+            raise
+        return None
+
+    def update_customize_datas(self, fields):
+        try:
+            print('fields')
+            print(fields)
+            for key, value in fields.items():
+                print(value)
+                for v in value:
+                    print(key)
+                    print(v)
+                    self.db.session.execute(text(getUpdateCustomizeDatas(key, v)))
+            self.db.session.commit()
+        except:
+            self.db.session.rollback()
+            raise
+        return None
+
+    def get_delete_field_datas(self, cId, pId, tbl, fields):
+        try:
+            print(getDeleteFieldDatas(cId, pId, tbl, fields))
+            self.db.session.execute(text(getDeleteFieldDatas(cId, pId, tbl, fields)))
+            self.db.session.commit()
+        except:
+            self.db.session.rollback()
+            raise
 
 class PageMenu(Page):
     @declared_attr

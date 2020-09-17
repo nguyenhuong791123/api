@@ -23,14 +23,14 @@ def getLists():
     result = None
     if request.json is not None:
         cId = request.json['cId']
-        if cId is None or cId <= 0:
-            return jsonify({ 'cId': 'incorrect company id'}), 200
+        if is_integer(cId) == False:
+            return jsonify({ 'error': 'incorrect company id'}), 200
         uId = request.json['uId']
-        if uId is None or uId <= 0:
-            return jsonify({ 'uId': 'incorrect user id'}), 200
+        if is_integer(uId) == False:
+            return jsonify({ 'error': 'incorrect user id'}), 200
         pId = request.json['pId']
-        if pId is None or pId <= 0:
-            return jsonify({ 'pId': 'incorrect page id'}), 200
+        if is_integer(pId) == False:
+            return jsonify({ 'error': 'incorrect page id'}), 200
 
         conn = None
         try:
@@ -64,11 +64,11 @@ def getColumns():
     result = None
     if request.json is not None:
         cId = request.json['cId']
-        if cId is None or cId <= 0:
-            return jsonify({ 'cId': 'incorrect company id'}), 200
+        if is_integer(cId) == False:
+            return jsonify({ 'error': 'incorrect company id'}), 200
         pId = request.json['pId']
-        if pId is None or pId <= 0:
-            return jsonify({ 'pId': 'incorrect page id'}), 200
+        if is_integer(pId) == False:
+            return jsonify({ 'error': 'incorrect page id'}), 200
         language = request.json['language']
         if is_empty(language) == True:
             return jsonify({ 'language': 'incorrect language'}), 200
@@ -103,25 +103,25 @@ def getDatas():
     result = None
     if request.json is not None:
         cId = request.json['cId']
-        if cId is None or cId <= 0:
-            return jsonify({ 'cId': 'incorrect company id'}), 200
+        if is_integer(cId) == False:
+            return jsonify({ 'error': 'incorrect company id'}), 200
         uId = request.json['uId']
-        if uId is None or uId <= 0:
-            return jsonify({ 'uId': 'incorrect user id'}), 200
+        if is_integer(uId) == False:
+            return jsonify({ 'error': 'incorrect user id'}), 200
         page = request.json['page']
         if is_empty(page) == True or is_exist(page, 'page_key') == False:
-            return jsonify({ 'page': 'incorrect page info'}), 200
+            return jsonify({ 'error': 'incorrect page info'}), 200
         schema = page['page_key']
         columns = page['columns']
         idSeq = page['page_id_seq']
         if is_empty(columns) == True:
-            return jsonify({ 'columns': 'incorrect columns info'}), 200
+            return jsonify({ 'error': 'incorrect columns info'}), 200
         reference = None
-        if is_exist(page, 'reference') == True:
-            reference = page['reference']
+        if is_exist(request.json, 'reference') == True:
+            reference = request.json['reference']
         where = None
-        if is_exist(page, 'where') == True:
-            where = page['where']
+        if is_exist(request.json, 'where') == True:
+            where = request.json['where']
 
         conn = None
         try:

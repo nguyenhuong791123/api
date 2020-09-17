@@ -1,3 +1,25 @@
+CREATE OR REPLACE FUNCTION public.drop_customize_sequence()
+RETURNS VOID AS $$
+DECLARE
+  query TEXT;
+  cur_seq CURSOR FOR SELECT 'DROP SEQUENCE IF EXISTS customize.' || relname || ' CASCADE;' AS is_query 
+                   FROM pg_class WHERE relkind='S' AND relname LIKE 'seq_id_%';
+
+BEGIN
+  OPEN cur_seq;
+  LOOP
+    FETCH cur_seq INTO query;
+    EXIT WHEN NOT FOUND;
+    IF query!='' THEN
+      RAISE NOTICE '%', query;
+      EXECUTE query;
+      SELECT '' INTO query;
+    END IF;
+  END LOOP;
+  RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION public.init_database(in_db VARCHAR(50), in_com INT)
 RETURNS VOID AS $$
 DECLARE
@@ -73,22 +95,22 @@ BEGIN
             AND pg_stat_user_tables.schemaname=is_s AND pg_stat_user_tables.relname=is_tn INTO is_td;
 
           IF is_c_t = 'company.company_info' THEN
-            SELECT 'number_company_info_company_id' INTO is_id_seq;
+            SELECT 'integer_company_info_company_id' INTO is_id_seq;
             -- SELECT 'hidden_company_info_company_id' INTO is_id_seq;
           ELSIF is_c_t = 'company.group_info' THEN
-            SELECT 'number_group_info_group_id' INTO is_id_seq;
+            SELECT 'integer_group_info_group_id' INTO is_id_seq;
             -- SELECT 'hidden_group_info_group_id' INTO is_id_seq;
           ELSIF is_c_t = 'company.users_info' THEN
-            SELECT 'number_users_info_user_id' INTO is_id_seq;
+            SELECT 'integer_users_info_user_id' INTO is_id_seq;
             -- SELECT 'hidden_users_info_user_id' INTO is_id_seq;
           ELSIF is_c_t = 'mente.page_info' THEN
-            SELECT 'number_page_info_page_id' INTO is_id_seq;
+            SELECT 'integer_page_info_page_id' INTO is_id_seq;
             -- SELECT 'hidden_page_info_page_id' INTO is_id_seq;
           ELSIF is_c_t = 'system.server_info' THEN
-            SELECT 'number_server_info_server_id' INTO is_id_seq;
+            SELECT 'integer_server_info_server_id' INTO is_id_seq;
             -- SELECT 'hidden_server_info_server_id' INTO is_id_seq;
           ELSIF is_c_t = 'system.api_info' THEN
-            SELECT 'number_api_info_api_id' INTO is_id_seq;
+            SELECT 'integer_api_info_api_id' INTO is_id_seq;
             -- SELECT 'hidden_api_info_api_id' INTO is_id_seq;
           ELSE
             SELECT '' INTO is_id_seq;
@@ -168,10 +190,12 @@ BEGIN
 
         SELECT 
           CASE
-            WHEN is_t = 'varchar' OR is_t = 'text' OR is_t = 'json' OR is_t = 'jsonb' THEN
+            WHEN is_t = 'varchar' OR is_t = 'text' THEN
+              'text'
+            WHEN is_t = 'json' OR is_t = 'jsonb' THEN
               'string'
             WHEN is_t = 'int4' OR is_t = 'int2' THEN
-              'number'
+              'integer'
             WHEN is_t = 'timestamp' THEN
               'datetime'
             ELSE is_t
@@ -207,7 +231,7 @@ BEGIN
           OR (is_tn = 'users_info' AND is_c = 'user_id')
           OR (is_tn = 'server_info' AND is_c = 'server_id')
           OR (is_tn = 'api_info' AND is_c = 'api_id')THEN
-          SELECT 'number' INTO is_s_t;
+          SELECT 'integer' INTO is_s_t;
           -- SELECT 'hidden' INTO is_s_t;
         ELSIF is_c = 'company_logo' OR is_c = 'user_image' THEN
           SELECT 'image' INTO is_s_t;
@@ -523,10 +547,104 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- SELECT 'DROP SEQUENCE IF EXISTS ' || c.relname || ' CASCADE;' FROM pg_class c WHERE (c.relkind = 'S') AND c.relname LIKE 'col_%' INTO query;
-  -- RAISE NOTICE '%', query;
-  -- EXECUTE query;
+  DROP SEQUENCE IF EXISTS customize.varchar_field_datas_id_seq CASCADE;
+  CREATE SEQUENCE customize.varchar_field_datas_id_seq;
+  CREATE TABLE customize.varchar_field_datas (
+    field_id INTEGER NOT NULL DEFAULT nextval('customize.varchar_field_datas_id_seq'::regclass),
+    page_id INTEGER NOT NULL DEFAULT 0,
+    row_id INTEGER NOT NULL DEFAULT 0,
+    properties_name varchar(50) NOT NULL DEFAULT '',
+    value varchar(50),
+    CONSTRAINT pk_varchar_field_datas_properties_name_row_id PRIMARY KEY (properties_name, row_id),
+    CONSTRAINT fk_varchar_field_datas_page_id FOREIGN KEY (page_id) REFERENCES mente.page_info(page_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  );
+
+  DROP SEQUENCE IF EXISTS customize.text_field_datas_id_seq CASCADE;
+  CREATE SEQUENCE customize.text_field_datas_id_seq;
+  CREATE TABLE customize.text_field_datas (
+    field_id INTEGER NOT NULL DEFAULT nextval('customize.text_field_datas_id_seq'::regclass),
+    page_id INTEGER NOT NULL DEFAULT 0,
+    row_id INTEGER NOT NULL DEFAULT 0,
+    properties_name varchar(50) NOT NULL DEFAULT '',
+    value TEXT,
+    CONSTRAINT pk_text_field_datas_properties_name_row_id PRIMARY KEY (properties_name, row_id),
+    CONSTRAINT fk_text_field_datas_page_id FOREIGN KEY (page_id) REFERENCES mente.page_info(page_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  );
+
+  DROP SEQUENCE IF EXISTS customize.date_field_datas_id_seq CASCADE;
+  CREATE SEQUENCE customize.date_field_datas_id_seq;
+  CREATE TABLE customize.date_field_datas (
+    field_id INTEGER NOT NULL DEFAULT nextval('customize.date_field_datas_id_seq'::regclass),
+    page_id INTEGER NOT NULL DEFAULT 0,
+    row_id INTEGER NOT NULL DEFAULT 0,
+    properties_name varchar(50) NOT NULL DEFAULT '',
+    value DATE,
+    CONSTRAINT pk_date_field_datas_properties_name_row_id PRIMARY KEY (properties_name, row_id),
+    CONSTRAINT fk_date_field_datas_page_id FOREIGN KEY (page_id) REFERENCES mente.page_info(page_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  );
+
+  DROP SEQUENCE IF EXISTS customize.datetime_field_datas_id_seq CASCADE;
+  CREATE SEQUENCE customize.datetime_field_datas_id_seq;
+  CREATE TABLE customize.datetime_field_datas (
+    field_id INTEGER NOT NULL DEFAULT nextval('customize.date_field_datas_id_seq'::regclass),
+    page_id INTEGER NOT NULL DEFAULT 0,
+    row_id INTEGER NOT NULL DEFAULT 0,
+    properties_name varchar(50) NOT NULL DEFAULT '',
+    value TIMESTAMP,
+    CONSTRAINT pk_datetime_field_datas_properties_name_row_id PRIMARY KEY (properties_name, row_id),
+    CONSTRAINT fk_datetime_field_datas_page_id FOREIGN KEY (page_id) REFERENCES mente.page_info(page_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  );
+
+  DROP SEQUENCE IF EXISTS customize.time_field_datas_id_seq CASCADE;
+  CREATE SEQUENCE customize.time_field_datas_id_seq;
+  CREATE TABLE customize.time_field_datas (
+    field_id INTEGER NOT NULL DEFAULT nextval('customize.time_field_datas_id_seq'::regclass),
+    page_id INTEGER NOT NULL DEFAULT 0,
+    row_id INTEGER NOT NULL DEFAULT 0,
+    properties_name varchar(50) NOT NULL DEFAULT '',
+    value TIME,
+    CONSTRAINT pk_time_field_datas_properties_name_row_id PRIMARY KEY (properties_name, row_id),
+    CONSTRAINT fk_time_field_datas_page_id FOREIGN KEY (page_id) REFERENCES mente.page_info(page_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  );
+
+  DROP SEQUENCE IF EXISTS customize.file_field_datas_id_seq CASCADE;
+  CREATE SEQUENCE customize.file_field_datas_id_seq;
+  CREATE TABLE customize.file_field_datas (
+    field_id INTEGER NOT NULL DEFAULT nextval('customize.file_field_datas_id_seq'::regclass),
+    page_id INTEGER NOT NULL DEFAULT 0,
+    row_id INTEGER NOT NULL DEFAULT 0,
+    properties_name varchar(50) NOT NULL DEFAULT '',
+    value JSON,
+    CONSTRAINT pk_file_field_datas_properties_name_row_id PRIMARY KEY (properties_name, row_id),
+    CONSTRAINT fk_file_field_datas_page_id FOREIGN KEY (page_id) REFERENCES mente.page_info(page_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  );
+
+  DROP SEQUENCE IF EXISTS customize.integer_field_datas_id_seq CASCADE;
+  CREATE SEQUENCE customize.integer_field_datas_id_seq;
+  CREATE TABLE customize.integer_field_datas (
+    field_id INTEGER NOT NULL DEFAULT nextval('customize.integer_field_datas_id_seq'::regclass),
+    page_id INTEGER NOT NULL DEFAULT 0,
+    row_id INTEGER NOT NULL DEFAULT 0,
+    properties_name varchar(50) NOT NULL DEFAULT '',
+    value INTEGER,
+    CONSTRAINT pk_integer_field_datas_properties_name_row_id PRIMARY KEY (properties_name, row_id),
+    CONSTRAINT fk_integer_field_datas_page_id FOREIGN KEY (page_id) REFERENCES mente.page_info(page_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  );
+
+  DROP SEQUENCE IF EXISTS customize.double_field_datas_id_seq CASCADE;
+  CREATE SEQUENCE customize.double_field_datas_id_seq;
+  CREATE TABLE customize.double_field_datas (
+    field_id INTEGER NOT NULL DEFAULT nextval('customize.double_field_datas_id_seq'::regclass),
+    page_id INTEGER NOT NULL DEFAULT 0,
+    row_id INTEGER NOT NULL DEFAULT 0,
+    properties_name varchar(50) NOT NULL DEFAULT '',
+    value DECIMAL(20, 3),
+    CONSTRAINT pk_double_field_datas_properties_name_row_id PRIMARY KEY (properties_name, row_id),
+    CONSTRAINT fk_double_field_datas_page_id FOREIGN KEY (page_id) REFERENCES mente.page_info(page_id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION
+  );
+
   RETURN;
 END;
 $$ LANGUAGE plpgsql;
+SELECT public.drop_customize_sequence();
 SELECT public.init_database('smartcrm', 1);

@@ -21,7 +21,7 @@ class User(Base):
     user_city = Column(Integer)
     user_address = Column(String(150))
     user_address_kana = Column(String(200))
-    user_image = Column(Text)
+    user_image = Column(JSON)
     user_mail = Column(String(150))
     user_firewall = Column(Integer)
     user_global_flag = Column(Integer)

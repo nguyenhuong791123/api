@@ -15,6 +15,7 @@ from utils.db.crm.defaultdata import DefaultData
 from utils.db.crm.properties import Properties
 from utils.db.crm.editobject import EditObject
 from utils.db.crm.options import Options
+from utils.db.query.page import getProperties, getLabels, getUis
 
 def setServicePage(page, cId, uId):
     uconn = None
@@ -33,6 +34,7 @@ def setServicePage(page, cId, uId):
     eos = None
     ul = None
     dl = None
+    # customize = []
     try:
         conn = DB(get_common_db_info())
         conn = Server(conn)
@@ -41,7 +43,6 @@ def setServicePage(page, cId, uId):
             server = ServerInfo(many=False).dump(server)
             uconn = DB(get_db_info(server))
             pconn = Page(uconn)
-            # print(page)
             if is_integer(page['page_id']) == True:
                 pconn.update(page)
                 result = page
@@ -55,7 +56,7 @@ def setServicePage(page, cId, uId):
                 result['items'] = []
                 pk = result['page_key'] + '_' + '{0:07}'.format(result['page_id'])
                 result['page_key'] = pk
-                result['page_id_seq'] = 'seq_id_' + pk.replace('customize.table_', '')
+                result['page_id_seq'] = 'integer_seq_id_' + pk.replace('customize.table_', '')
                 pconn.update(result)
 
             ul = []
@@ -111,33 +112,56 @@ def setServicePage(page, cId, uId):
 
                     if is_integer(page['page_id']) == False and addIdSeq == True:
                         psconn = Properties(uconn)
-                        p = {}
-                        p['schema_id'] = s['schema_id']
-                        p['properties_name'] = 'number_' + result['page_id_seq']
-                        idseq = {}
-                        idseq['idx'] = 0
-                        idseq['type'] = 'number'
-                        idseq['auth'] = {}
-                        idseq['auth']['edit'] = False
-                        idseq['auth']['view'] = False
-                        idseq['auth']['create'] = False
-                        idseq['auth']['search'] = True
-                        p['value'] = idseq
-                        psconn.__json__(p)
+                        psconn.__json__(getProperties(result['page_id_seq'], s['schema_id']))
                         pl.append(psconn)
                         plsconn = Label(uconn)
-                        pln = {}
-                        pln['schema_id'] = s['schema_id']
-                        pln['properties_name'] = 'number_' + result['page_id_seq']
-                        pln['object_label'] = { 'en': 'ID', 'ja': 'ID', 'vi':'ID' }
-                        plsconn.__json__(pln)
+                        plsconn.__json__(getLabels(result['page_id_seq'], s['schema_id'], { 'en': 'ID', 'ja': 'ID', 'vi':'ID' }))
                         pls.append(plsconn)
                         uiconn = Ui(uconn)
-                        u = {}
-                        u['schema_id'] = s['schema_id']
-                        u['properties_name'] = 'number_' + result['page_id_seq']
-                        u['value'] = { 'ui:widget': 'hidden' }
-                        uiconn.__json__(u)
+                        uiconn.__json__(getUis(result['page_id_seq'], s['schema_id'], { 'ui:widget': 'hidden' }))
+                        ul.append(uiconn)
+
+                        tbl = result['page_id_seq'].replace('integer_seq_id_', '')
+                        createdId = 'integer_' + tbl + '_created_id'
+                        psconn = Properties(uconn)
+                        psconn.__json__(getProperties(createdId, s['schema_id']))
+                        pl.append(psconn)
+                        plsconn = Label(uconn)
+                        plsconn.__json__(getLabels(createdId, s['schema_id'], { 'en': 'Author', 'ja': '作成者', 'vi':'Author' }))
+                        pls.append(plsconn)
+                        uiconn = Ui(uconn)
+                        uiconn.__json__(getUis(createdId, s['schema_id'], { 'ui:widget': 'hidden' }))
+                        ul.append(uiconn)
+                        createdTime = 'datetime_' + tbl + '_created_time'
+                        psconn = Properties(uconn)
+                        psconn.__json__(getProperties(createdTime, s['schema_id']))
+                        pl.append(psconn)
+                        plsconn = Label(uconn)
+                        plsconn.__json__(getLabels(createdTime, s['schema_id'], { 'en': 'Created date', 'ja': '作成日時', 'vi':'Created date' }))
+                        pls.append(plsconn)
+                        uiconn = Ui(uconn)
+                        uiconn.__json__(getUis(createdTime, s['schema_id'], { 'ui:widget': 'hidden' }))
+                        ul.append(uiconn)
+
+                        updatedId = 'integer_' + tbl + '_updated_id'
+                        psconn = Properties(uconn)
+                        psconn.__json__(getProperties(updatedId, s['schema_id']))
+                        pl.append(psconn)
+                        plsconn = Label(uconn)
+                        plsconn.__json__(getLabels(updatedId, s['schema_id'], { 'en': 'Changer', 'ja': '更新者', 'vi':'Changer' }))
+                        pls.append(plsconn)
+                        uiconn = Ui(uconn)
+                        uiconn.__json__(getUis(updatedId, s['schema_id'], { 'ui:widget': 'hidden' }))
+                        ul.append(uiconn)
+                        updatedTime = 'datetime_' + tbl + '_updated_time'
+                        psconn = Properties(uconn)
+                        psconn.__json__(getProperties(updatedTime, s['schema_id']))
+                        pl.append(psconn)
+                        plsconn = Label(uconn)
+                        plsconn.__json__(getLabels(updatedTime, s['schema_id'], { 'en': 'Updated date', 'ja': '更新日時', 'vi':'Updated date' }))
+                        pls.append(plsconn)
+                        uiconn = Ui(uconn)
+                        uiconn.__json__(getUis(updatedTime, s['schema_id'], { 'ui:widget': 'hidden' }))
                         ul.append(uiconn)
                     addIdSeq = False
 
@@ -191,6 +215,8 @@ def setServicePage(page, cId, uId):
                             p['value'] = pp[key]
                             psconn.__json__(p)
                             pl.append(psconn)
+                            # if is_integer(page['page_id']) and key.endswith('_customize'):
+                            #     customize.append(key)
 
                             if is_exist(pp[key], 'obj') == True and is_exist(pp[key]['obj'], 'label'):
                                 plsconn = Label(uconn)
@@ -274,6 +300,8 @@ def setServicePage(page, cId, uId):
             page['page_key'] = result['page_key']
             if is_integer(page['page_id']) == False:
                 pconn.create_table(page)
+            # else:
+            #     print(customize)
         else:
             result = { 'error': 'Not Server Info!!!'}
     except Exception as ex:
@@ -326,15 +354,12 @@ def getServicePage(cId, pId, language, edit):
             server = ServerInfo(many=False).dump(server)
             conn = DB(get_db_info(server))
             pconn = PageForm(conn)
-            print(pconn)
             if edit == True:
                 page = pconn.get_edit_form_fields(cId, pId, language)
             else:
                 page = pconn.get_form_fields(cId, pId, language)
             result = PageFormSchema(many=False).dump(page)
 
-            print(edit)
-            print(result)
             forms = result['form']
             for f in forms:
                 if f['object_type'] == 'div':

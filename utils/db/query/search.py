@@ -19,17 +19,17 @@ def getColums():
     return sql
 
 def getDatas(schema, columns, idSeq, where, reference):
-    print(idSeq)
+    print(columns)
+    print(where)
     cols = []
     gBy = []
     customize = False
     text = False
+    varchar = False
+    joins = []
     if schema in [ 'company.company_info', 'company.group_info', 'company.users_info', 'system.api_info', 'system.server_info' ]:
         tbl = schema[(schema.find('.')+1):]
-        print(idSeq)
-        print(tbl)
         fIdx = (idSeq.find(tbl) + len(tbl)) + 1
-        print(fIdx)
         idSeq = schema + '.' + idSeq[fIdx:]
         for i, c in enumerate(columns):
             if c.find(tbl) > -1:
@@ -41,17 +41,52 @@ def getDatas(schema, columns, idSeq, where, reference):
             else:
                 cn = c
                 customize = True
-                if cn.startswith('text_'):
-                    text = True
-                # cn = c + ' AS ' + c
+                ct = c[0:c.find('_')]
+                # print(ct)
+                if ct == 'text':
+                    ct = 'varchar'
+                elif ct == 'month':
+                    ct = 'date'
+                elif ct in [ 'textarea', 'editor' ]:
+                    ct = 'text'
+                elif ct in [ 'file', 'image']:
+                        ct = 'file'
+                elif ct in [ 'number', 'checkbox', 'radio', 'select' ]:
+                    if ct == 'number':
+                        ct = 'double'
+                    else:
+                        ct = 'integer'
+                if ct not in joins:
+                    joins.append(ct)
             columns[i] = None
     else:
         for i, c in enumerate(columns):
             cn = c
             if c.find('_seq_id_') > -1:
+                idSeq = schema + '.' + idSeq[(idSeq.find('_')+1):]
                 cn = c[(c.find('_')+1):]
-            cn = schema + '.' + cn + ' AS ' + c
-            cols.append(cn)
+            if c.endswith('_customize'):
+                customize = True
+                ct = c[0:c.find('_')]
+                if ct == 'text':
+                    ct = 'varchar'
+                elif ct == 'month':
+                    ct = 'date'
+                elif ct in [ 'textarea', 'editor']:
+                    ct = 'text'
+                elif ct in [ 'file', 'image']:
+                    ct = 'file'
+                elif ct in [ 'number', 'checkbox', 'radio', 'select' ]:
+                    if ct == 'number':
+                        ct = 'double'
+                    else:
+                        ct = 'integer'
+                if ct not in joins:
+                    joins.append(ct)
+            else:
+                col = schema + '.' + cn + ' AS ' + c
+                gBy.append(cn)
+                cols.append(col)
             columns[i] = None
 
     columns = list(filter(None, columns))
@@ -59,17 +94,31 @@ def getDatas(schema, columns, idSeq, where, reference):
 
     sql = " SELECT json_agg(result) AS result FROM ("
     sql += " SELECT %s " % (",".join(columns))
-    if customize:
-        sql += " ,json_agg(json_build_object(ct.properties_name, ct.value)) AS items "
+    if customize == True and (len(joins) > 0) and idSeq is not None:
+        for i, j in enumerate(joins):
+            if i == 0:
+                sql += " ,json_agg(json_build_object('field_id', %s.field_id, COALESCE(%s.properties_name, ''), %s.value))::jsonb " % (j, j, j)
+            else:
+                sql += " || json_agg(json_build_object('field_id', %s.field_id, COALESCE(%s.properties_name, ''), %s.value))::jsonb " % (j, j, j)
+        sql += " AS items "
     sql += " FROM %s " % (schema)
+
+    if customize == True and (len(joins) > 0) and idSeq is not None:
+        # print(joins)
+        sql += " LEFT JOIN mente.page_info p ON p.page_key='%s' " % (schema)
+        for join in joins:
+            sql += " LEFT JOIN customize.%s_field_datas %s ON %s.page_id=p.page_id AND %s.row_id=%s" % (join, join, join, join, idSeq)
     if reference is not None and len(reference) > 0:
         sql += " %s " % (reference)
     if where is not None and len(where) > 0:
-        sql += " %s " % (where)
-    if customize == True:
-        sql += " LEFT JOIN mente.page_info p ON p.page_key='%s' " % (schema)
-        if text:
-            sql += " LEFT JOIN customize.text_field_datas ct ON ct.page_id=p.page_id AND ct.row_id=%s" % (idSeq)
+        sw = where[(where.find('_')+1):]
+        if schema in [ 'company.company_info', 'company.group_info', 'company.users_info', 'system.api_info', 'system.server_info' ]:
+            s1st = sw.find('_') + 1
+            wTbl = sw[0:sw.find('_', s1st)]
+            sw = sw.replace(wTbl + '_', wTbl + '.')
+        sql += " WHERE %s " % (sw)
+
+    if customize == True and (len(joins) > 0) and idSeq is not None:
         sql += " GROUP BY %s " % (",".join(gBy))
     sql += " ) AS result "
     print(sql)
