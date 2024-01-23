@@ -16,7 +16,7 @@ class Q():
 class Config():
     def __init__(self, **kwargs):
         self.host = kwargs['host']
-        self.port = 3306
+        self.port = kwargs['port']
         self.database = kwargs['database']
         self.username = kwargs['username']
         self.password = kwargs['password']
@@ -47,9 +47,9 @@ class Config():
 
     def get_uri(self):
         if self.port is not None:
-            return 'postgresql://' + self.username + ':' + self.password + '@' + self.host + ':' + str(self.port) + '/' + self.database
+            return 'postgresql+psycopg2://' + self.username + ':' + self.password + '@' + self.host + ':' + str(self.port) + '/' + self.database
         else:
-            return 'postgresql://' + self.username + ':' + self.password + '@' + self.host + '/' + self.database
+            return 'postgresql+psycopg2://' + self.username + ':' + self.password + '@' + self.host + '/' + self.database
 
 def get_engine(auth):
     if is_exist(auth, 'engine_mode') == False:

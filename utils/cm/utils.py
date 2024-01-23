@@ -16,6 +16,9 @@ def is_none(obj):
 def is_empty(val):
     return (val is None or len(val) <= 0)
 
+def is_integer(val):
+    return isinstance(val, int)
+
 def is_mail(val):
     val = re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', val)
     return (val is not None)

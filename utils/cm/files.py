@@ -184,7 +184,7 @@ def put_files(mode, sftp, transport, lpath, rpath, files, flag):
     if transport is not None and mode in [m.sftp, m.scp]:
         transport.close()
 
-    print(result)
+    # print(result)
     return result
 
 def get_files(mode, sftp, transport, outpath, files, flag):

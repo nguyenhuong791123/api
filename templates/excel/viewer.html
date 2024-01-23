@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>SC APIS v0.1.0</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  </head>
+<body>
+
+  {% include excel_viewer %}
+  {{ objs }}
+  <input id="tabs_data" type="hidden" value={{ objs }} />
+  <div id="div_tabs_data" ></div>
+  <script>
+    // var datas = document.getElementById('tabs_data');
+    // var datas = $.parseJSON('{{ objs }}');
+    var datas = '{{ objs }}'.split('&#39;', '"');
+    var strs = ''
+    for (var d=0; d<datas.length; d++) {
+      strs += datas[d]
+    }
+    // datas = datas[datas.length-1]
+    // objs = $.parseJSON(strs);
+    // datas.replaceAll('&#39;', '');
+    console.log(strs);
+    var ctx = document.getElementById('div_tabs_data');
+  </script>
+</body>
+</html>
