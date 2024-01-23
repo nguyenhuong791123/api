@@ -52,7 +52,7 @@ pyexcel-handsontable==0.0.2
 pyexcel-io==0.5.20
 pyexcel-xls==0.5.8
 pyexcel-xlsx==0.5.7
-PyJWT==1.7.1
+PyJWT==2.4.0
 pyminizip==0.2.4
 pymongo==3.10.0
 PyMySQL==0.9.3
