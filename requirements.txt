@@ -35,7 +35,7 @@ mysql-connector==2.2.9
 nltk==3.6.6
 numpy==1.17.4
 openpyxl==2.5.14
-paramiko==2.6.0
+paramiko==3.4.0
 passlib==1.7.2
 pdfkit==0.6.1
 Pillow==10.2.0
